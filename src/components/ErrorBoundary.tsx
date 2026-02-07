@@ -1,0 +1,93 @@
+import { Component, type ErrorInfo, type ReactNode } from 'react'
+
+const DB_NAME = 'studyhub-db'
+const LS_PREFIX = 'studyapp_'
+
+async function clearLocalData(): Promise<void> {
+  const keys: string[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key?.startsWith(LS_PREFIX)) keys.push(key)
+  }
+  keys.forEach((k) => localStorage.removeItem(k))
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.deleteDatabase(DB_NAME)
+    req.onsuccess = () => resolve()
+    req.onerror = () => reject(req.error)
+    req.onblocked = () => resolve()
+  })
+}
+
+interface Props {
+  children: ReactNode
+}
+
+interface State {
+  hasError: boolean
+  error: Error | null
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error('ErrorBoundary caught an error:', error, errorInfo)
+  }
+
+  handleGoToWorkspace = (): void => {
+    window.location.href = '/app/workspace'
+  }
+
+  handleReload = (): void => {
+    window.location.reload()
+  }
+
+  handleClearData = async (): Promise<void> => {
+    await clearLocalData()
+    window.location.reload()
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-slate-100 p-6 dark:bg-slate-900">
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">Something went wrong.</h1>
+          <p className="text-center text-slate-600 dark:text-slate-400">
+            An unexpected error occurred. You can go to the workspace, reload the app, or clear local data and start over.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+              onClick={this.handleGoToWorkspace}
+            >
+              Go to Workspace
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              onClick={this.handleReload}
+            >
+              Reload App
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border border-red-300 bg-white px-4 py-2 font-medium text-red-700 hover:bg-red-50 dark:border-red-700 dark:bg-slate-800 dark:text-red-300 dark:hover:bg-red-900/20"
+              onClick={this.handleClearData}
+            >
+              Clear Local Data
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}

@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Sepia theme */
+.theme-sepia {
+  color-scheme: light;
+}
+.theme-sepia body,
+.theme-sepia .bg-slate-50 { background-color: #f4ecd8; }
+.theme-sepia .bg-slate-100 { background-color: #ebe2cc; }
+.theme-sepia .bg-white { background-color: #fdfbf5; }
+.theme-sepia .bg-slate-800\/50 { background-color: rgba(68, 64, 60, 0.5); }
+.theme-sepia .dark\:bg-slate-800 { background-color: #78716c; }
+.theme-sepia .dark\:bg-slate-900 { background-color: #57534e; }
+.theme-sepia .text-slate-800 { color: #44403c; }
+.theme-sepia .text-slate-700 { color: #57534e; }
+.theme-sepia .text-slate-600 { color: #78716c; }
+.theme-sepia .border-slate-200 { border-color: #e7e5e4; }
+.theme-sepia .border-slate-700 { border-color: #44403c; }
+
+/* Compact mode */
+.compact .text-sm { font-size: 0.8125rem; }
+.compact .px-4 { padding-left: 0.5rem; padding-right: 0.5rem; }
+.compact .py-2 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.compact .p-4 { padding: 0.5rem; }
+.compact .p-6 { padding: 0.75rem; }
+.compact .gap-4 { gap: 0.5rem; }
+.compact .rounded-xl { border-radius: 0.5rem; }
