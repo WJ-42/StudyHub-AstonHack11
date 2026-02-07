@@ -37,6 +37,14 @@ export async function updateFileContent(id: string, content: string): Promise<vo
   }
 }
 
+export async function moveFile(fileId: string, folderId: string | null): Promise<WorkspaceFile | undefined> {
+  const item = await idbGet<WorkspaceItem>(WORKSPACE_STORE, fileId)
+  if (!item || item.kind !== 'file') return undefined
+  const updated: WorkspaceFile = { ...item, folderId, updatedAt: Date.now() }
+  await idbPut(WORKSPACE_STORE, updated)
+  return updated
+}
+
 export async function deleteItem(id: string): Promise<void> {
   await idbDelete(WORKSPACE_STORE, id)
 }

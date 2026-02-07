@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as workspaceStore from '@/store/workspace'
-import type { WorkspaceItem, WorkspaceFolder, WorkspaceFile } from '@/types/workspace'
+import type { WorkspaceItem, WorkspaceFolder, WorkspaceFile, SpotifyTrackMeta } from '@/types/workspace'
 
 export function useWorkspace() {
   const [items, setItems] = useState<WorkspaceItem[]>([])
@@ -63,6 +63,40 @@ export function useWorkspace() {
     return file.id
   }, [load])
 
+  const addPdfFile = useCallback(async (folderId: string | null, name: string, contentBase64: string, size: number) => {
+    const now = Date.now()
+    const file: WorkspaceFile = {
+      id: workspaceStore.generateId(),
+      kind: 'file',
+      folderId,
+      name,
+      fileType: 'pdf',
+      content: contentBase64,
+      createdAt: now,
+      size,
+      updatedAt: now,
+    }
+    await workspaceStore.saveFile(file)
+    await load()
+    return file.id
+  }, [load])
+
+  const addSpotifyTrackFile = useCallback(async (folderId: string | null, meta: SpotifyTrackMeta): Promise<string> => {
+    const name = meta.name && meta.artists ? `${meta.name} – ${meta.artists}` : meta.name || 'Spotify track'
+    const file: WorkspaceFile = {
+      id: workspaceStore.generateId(),
+      kind: 'file',
+      folderId,
+      name,
+      fileType: 'spotify',
+      content: JSON.stringify(meta),
+      createdAt: Date.now(),
+    }
+    await workspaceStore.saveFile(file)
+    await load()
+    return file.id
+  }, [load])
+
   const renameItem = useCallback(async (id: string, newName: string) => {
     const item = await workspaceStore.getItem(id)
     if (!item) return
@@ -104,6 +138,12 @@ export function useWorkspace() {
     await load()
   }, [load])
 
+  const moveFile = useCallback(async (fileId: string, folderId: string | null): Promise<boolean> => {
+    const updated = await workspaceStore.moveFile(fileId, folderId)
+    if (updated) await load()
+    return !!updated
+  }, [load])
+
   return {
     items,
     loading,
@@ -111,9 +151,12 @@ export function useWorkspace() {
     createFolder,
     addFile,
     addDocxFile,
+    addPdfFile,
+    addSpotifyTrackFile,
     renameItem,
     deleteItem,
     getItem,
     updateFileContent,
+    moveFile,
   }
 }

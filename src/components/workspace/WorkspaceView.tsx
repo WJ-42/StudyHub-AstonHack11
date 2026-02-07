@@ -1,11 +1,16 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { useWorkspace } from '@/hooks/useWorkspace'
 import { useTabs } from '@/hooks/useTabs'
 import { useSearch } from '@/contexts/SearchContext'
+import { getWorkspaceExpandedFolders, setWorkspaceExpandedFolders } from '@/store/storage'
 import { WorkspaceTree } from './WorkspaceTree'
 import { DocumentEditor } from '@/components/editor/DocumentEditor'
 import { DocxViewer } from '@/components/docx/DocxViewer'
-import { isFile, MAX_DOCX_SIZE } from '@/types/workspace'
+import { PdfViewer } from '@/components/pdf/PdfViewer'
+import { SpotifyTrackViewer } from './SpotifyTrackViewer'
+import { isFile, MAX_DOCX_SIZE, MAX_PDF_SIZE } from '@/types/workspace'
+
+const WORKSPACE_ROOT_ID = 'workspace-root'
 
 export function WorkspaceView() {
   const {
@@ -13,15 +18,45 @@ export function WorkspaceView() {
     createFolder,
     addFile,
     addDocxFile,
+    addPdfFile,
     renameItem,
     deleteItem,
     getItem,
     updateFileContent,
+    moveFile,
   } = useWorkspace()
+
+  const handleDelete = (id: string, _isFolder: boolean) => {
+    if (id === WORKSPACE_ROOT_ID) {
+      window.alert('Workspace cannot be removed.')
+      return
+    }
+    deleteItem(id)
+  }
   const { openTabIds, activeTabId, openTab, closeTab, setActiveTab } = useTabs()
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [importTargetFolderId, setImportTargetFolderId] = useState<string | null>(null)
+  const [expandedFolders, setExpandedFoldersState] = useState<Record<string, boolean>>(() => getWorkspaceExpandedFolders())
+  const [moveMessage, setMoveMessage] = useState<string | null>(null)
+  const [isDragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setWorkspaceExpandedFolders(expandedFolders)
+  }, [expandedFolders])
+
+  const handleToggleExpand = useCallback((folderId: string) => {
+    setExpandedFoldersState((prev) => ({ ...prev, [folderId]: !prev[folderId] }))
+  }, [])
+
+  const handleMoveFeedback = useCallback((message: string) => {
+    setMoveMessage(message)
+  }, [])
+  useEffect(() => {
+    if (!moveMessage) return
+    const t = setTimeout(() => setMoveMessage(null), 2500)
+    return () => clearTimeout(t)
+  }, [moveMessage])
 
   const handleCreateFolder = (parentId: string | null) => {
     const name = window.prompt('Folder name', 'New folder')
@@ -62,6 +97,26 @@ export function WorkspaceView() {
           const base64 = btoa(binary)
           const fileId = await addDocxFile(folderId, file.name, base64, file.size)
           openTab(fileId)
+        } else if (ext === 'pdf') {
+          if (file.size > MAX_PDF_SIZE) {
+            window.alert(`"${file.name}" is too large. Maximum size for PDF files is 5 MB.`)
+            continue
+          }
+          const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const r = new FileReader()
+            r.onload = () => resolve(r.result as ArrayBuffer)
+            r.onerror = () => reject(r.error)
+            r.readAsArrayBuffer(file)
+          })
+          const bytes = new Uint8Array(buffer)
+          const chunkSize = 8192
+          let binary = ''
+          for (let j = 0; j < bytes.length; j += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(j, j + chunkSize))
+          }
+          const base64 = btoa(binary)
+          const fileId = await addPdfFile(folderId, file.name, base64, file.size)
+          openTab(fileId)
         } else {
           const text = await new Promise<string>((resolve, reject) => {
             const r = new FileReader()
@@ -101,15 +156,27 @@ export function WorkspaceView() {
         <div className="border-b border-slate-200 p-2 font-medium text-slate-800 dark:border-slate-700 dark:text-slate-100">
           Files &amp; folders
         </div>
+        {moveMessage && (
+          <div className="border-b border-slate-200 bg-blue-50 px-2 py-1.5 text-sm text-blue-800 dark:border-slate-700 dark:bg-blue-900/30 dark:text-blue-200" role="status">
+            {moveMessage}
+          </div>
+        )}
         <WorkspaceTree
           items={filteredItems}
           selectedFolderId={selectedFolderId}
+          expandedFolders={expandedFolders}
+          onToggleExpand={handleToggleExpand}
           onSelectFolder={setSelectedFolderId}
           onOpenFile={handleOpenFile}
           onCreateFolder={handleCreateFolder}
           onImportFiles={handleImportRequest}
           onRename={renameItem}
-          onDelete={deleteItem}
+          onDelete={handleDelete}
+          moveFile={moveFile}
+          getItem={getItem}
+          onMoveFeedback={handleMoveFeedback}
+          isDragging={isDragging}
+          setDragging={setDragging}
         />
       </aside>
       <input
@@ -184,6 +251,21 @@ export function WorkspaceView() {
                 contentBase64={activeItem.content}
                 size={activeItem.size}
               />
+            </div>
+          )}
+          {hasTabs && activeItem && isFile(activeItem) && activeItem.fileType === 'pdf' && (
+            <div className="h-full min-h-[300px]">
+              <PdfViewer
+                fileId={activeItem.id}
+                fileName={activeItem.name}
+                contentBase64={activeItem.content}
+                size={activeItem.size}
+              />
+            </div>
+          )}
+          {hasTabs && activeItem && isFile(activeItem) && activeItem.fileType === 'spotify' && (
+            <div className="h-full min-h-[300px]">
+              <SpotifyTrackViewer content={activeItem.content} fileName={activeItem.name} />
             </div>
           )}
           {hasTabs && activeItem && isFile(activeItem) && (activeItem.fileType === 'text' || activeItem.fileType === 'csv') && (

@@ -18,7 +18,7 @@ const FEATURES = [
   {
     id: 'media',
     title: 'Media Player Hub',
-    description: 'Embed Spotify, Apple Music, and YouTube. Keep your last link per provider.',
+    description: 'Embed Spotify and YouTube. Keep your last link per provider.',
     icon: '🎵',
   },
   {

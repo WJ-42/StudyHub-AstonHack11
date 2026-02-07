@@ -1,8 +1,11 @@
 export type WorkspaceKind = 'folder' | 'file'
-export type FileType = 'text' | 'csv' | 'docx'
+export type FileType = 'text' | 'csv' | 'docx' | 'pdf' | 'spotify'
 
 /** Max size in bytes for DOCX import (5 MB). */
 export const MAX_DOCX_SIZE = 5 * 1024 * 1024
+
+/** Max size in bytes for PDF import (5 MB). */
+export const MAX_PDF_SIZE = 5 * 1024 * 1024
 
 export interface WorkspaceFolder {
   id: string
@@ -34,4 +37,18 @@ export function isFolder(item: WorkspaceItem): item is WorkspaceFolder {
 
 export function isFile(item: WorkspaceItem): item is WorkspaceFile {
   return item.kind === 'file'
+}
+
+/** Metadata stored in workspace files with fileType 'spotify'. */
+export interface SpotifyTrackMeta {
+  source: 'spotify'
+  trackId: string
+  trackUrl: string
+  name: string
+  artists: string
+  album: string
+  duration_ms?: number
+  artworkUrl?: string | null
+  playlistId?: string | null
+  liked?: boolean
 }

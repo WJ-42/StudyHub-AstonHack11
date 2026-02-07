@@ -132,7 +132,6 @@ export function setSidebarCollapsed(value: boolean): void {
 
 export interface MediaLinks {
   spotify?: string
-  appleMusic?: string
   youtube?: string
 }
 
@@ -148,4 +147,61 @@ export function getMediaLinks(): MediaLinks {
 
 export function setMediaLinks(links: MediaLinks): void {
   lsSet('media_links', JSON.stringify(links))
+}
+
+const WORKSPACE_EXPANDED_KEY = 'workspace_expanded'
+
+export function getWorkspaceExpandedFolders(): Record<string, boolean> {
+  try {
+    const raw = lsGet(WORKSPACE_EXPANDED_KEY)
+    if (!raw) return {}
+    return JSON.parse(raw) as Record<string, boolean>
+  } catch {
+    return {}
+  }
+}
+
+export function setWorkspaceExpandedFolders(expanded: Record<string, boolean>): void {
+  lsSet(WORKSPACE_EXPANDED_KEY, JSON.stringify(expanded))
+}
+
+const SPOTIFY_TOKENS_KEY = 'spotify_tokens'
+
+export interface SpotifyTokens {
+  access_token: string
+  expires_at: number
+  refresh_token?: string
+}
+
+export function getSpotifyTokens(): SpotifyTokens | null {
+  try {
+    const raw = lsGet(SPOTIFY_TOKENS_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as SpotifyTokens
+  } catch {
+    return null
+  }
+}
+
+export function setSpotifyTokens(tokens: SpotifyTokens): void {
+  lsSet(SPOTIFY_TOKENS_KEY, JSON.stringify(tokens))
+}
+
+export function removeSpotifyTokens(): void {
+  lsRemove(SPOTIFY_TOKENS_KEY)
+}
+
+const MEDIA_SPOTIFY_YOUTUBE_KEY = 'media_spotify_youtube'
+
+/** YouTube videoId for "full version" player (Spotify dual-mode). Persisted so refresh restores. */
+export function getMediaSpotifyYoutubeVideoId(): string | null {
+  return lsGet(MEDIA_SPOTIFY_YOUTUBE_KEY)
+}
+
+export function setMediaSpotifyYoutubeVideoId(videoId: string): void {
+  lsSet(MEDIA_SPOTIFY_YOUTUBE_KEY, videoId)
+}
+
+export function removeMediaSpotifyYoutubeVideoId(): void {
+  lsRemove(MEDIA_SPOTIFY_YOUTUBE_KEY)
 }
