@@ -1,11 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/Button'
+import type { YouTubeSearchItem } from '@/services/youtubeSearch'
 
 export interface FindOnYouTubeModalProps {
   isOpen: boolean
   onClose: () => void
   onLoaded: (videoId: string) => void
-  /** Optional pre-fill for search query (e.g. from Spotify link); often empty when no API. */
+  /** Pre-filled search query (from Spotify oEmbed). */
   initialSearchQuery?: string
+  /** Search results from YouTube API; when set and length > 0, show results list (default view). */
+  searchResults?: YouTubeSearchItem[] | null
+  /** When set, show this message and reveal fallback paste UI. */
+  errorMessage?: string | null
+  /** When true, show manual "Paste YouTube video URL" section (fallback only). */
+  showFallbackPaste?: boolean
+  /** When set, show "Use previous match" that loads this videoId. */
+  cachedVideoId?: string | null
+  /** Called when user clicks "Search again" with the current query. */
+  onSearchAgain?: (query: string) => void
 }
 
 function extractYouTubeVideoId(input: string): string | null {
@@ -32,22 +44,31 @@ export function FindOnYouTubeModal({
   onClose,
   onLoaded,
   initialSearchQuery = '',
+  searchResults = null,
+  errorMessage = null,
+  showFallbackPaste = false,
+  cachedVideoId = null,
+  onSearchAgain,
 }: FindOnYouTubeModalProps) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
   const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [searchError, setSearchError] = useState<string | null>(null)
   const [urlError, setUrlError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isOpen) setSearchQuery(initialSearchQuery)
+  }, [isOpen, initialSearchQuery])
 
   if (!isOpen) return null
 
-  const handleOpenYouTubeSearch = () => {
-    const q = searchQuery.trim()
-    if (!q) {
-      setSearchError('Enter track title and artist (e.g. Artist - Track name)')
-      return
-    }
-    setSearchError(null)
-    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, '_blank', 'noopener')
+  const hasResults = !!(searchResults && searchResults.length > 0)
+
+  const handleSelect = (videoId: string) => {
+    onLoaded(videoId)
+    onClose()
+  }
+
+  const handleSearchAgainClick = () => {
+    onSearchAgain?.(searchQuery)
   }
 
   const handleLoadYouTube = () => {
@@ -63,7 +84,6 @@ export function FindOnYouTubeModal({
   }
 
   const handleClose = () => {
-    setSearchError(null)
     setUrlError(null)
     setYoutubeUrl('')
     onClose()
@@ -77,71 +97,103 @@ export function FindOnYouTubeModal({
           Find on YouTube
         </h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Search on YouTube, then paste the video URL below to play the full version here.
+          {hasResults ? 'Choose a video to play the full version.' : showFallbackPaste ? 'Paste a YouTube video URL below.' : 'Searching…'}
         </p>
 
-        <div className="mt-4">
-          <label htmlFor="youtube-search-query" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Search query
-          </label>
-          <input
-            id="youtube-search-query"
-            type="text"
-            placeholder="e.g. Artist - Track name"
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setSearchError(null) }}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-            aria-describedby={searchError ? 'search-error' : undefined}
-          />
-          {searchError && (
-            <p id="search-error" className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
-              {searchError}
-            </p>
-          )}
-          <button
-            type="button"
-            className="mt-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-            onClick={handleOpenYouTubeSearch}
-          >
-            Open YouTube search
-          </button>
-        </div>
+        {hasResults && (
+          <>
+            {cachedVideoId && (
+              <div className="mt-3">
+                <Button variant="secondary" size="sm" onClick={() => handleSelect(cachedVideoId)}>
+                  Use previous match
+                </Button>
+              </div>
+            )}
+            <div className="mt-3">
+              <label htmlFor="youtube-search-query" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Search query
+              </label>
+              <input
+                id="youtube-search-query"
+                type="text"
+                placeholder="e.g. Artist - Track name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+              />
+              {onSearchAgain && (
+                <Button variant="primary" size="sm" className="mt-2" onClick={handleSearchAgainClick}>
+                  Search again
+                </Button>
+              )}
+            </div>
+            <ul className="mt-4 max-h-64 space-y-2 overflow-auto rounded-lg border border-slate-200 dark:border-slate-600">
+              {searchResults!.map((v) => (
+                <li key={v.videoId}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    onClick={() => handleSelect(v.videoId)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelect(v.videoId) } }}
+                  >
+                    {v.thumbnailUrl && (
+                      <img src={v.thumbnailUrl} alt="" className="h-14 w-24 flex-shrink-0 rounded object-cover" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{v.title}</p>
+                      <p className="truncate text-xs text-slate-500 dark:text-slate-400">{v.channelTitle}</p>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); handleSelect(v.videoId) }}>
+                      Select
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
-        <div className="mt-6">
-          <label htmlFor="youtube-paste-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Paste YouTube video URL here
-          </label>
-          <input
-            id="youtube-paste-url"
-            type="url"
-            placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-            value={youtubeUrl}
-            onChange={(e) => { setYoutubeUrl(e.target.value); setUrlError(null) }}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-            aria-describedby={urlError ? 'url-error' : undefined}
-          />
-          {urlError && (
-            <p id="url-error" className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
-              {urlError}
-            </p>
-          )}
-          <button
-            type="button"
-            className="mt-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            onClick={handleLoadYouTube}
-          >
-            Load YouTube
-          </button>
-        </div>
+        {showFallbackPaste && (
+          <>
+            {errorMessage && (
+              <p className="mt-4 text-sm text-amber-600 dark:text-amber-400" role="alert">
+                {errorMessage}
+              </p>
+            )}
+            <div className="mt-4">
+              <label htmlFor="youtube-paste-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Paste YouTube video URL here
+              </label>
+              <input
+                id="youtube-paste-url"
+                type="url"
+                placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                value={youtubeUrl}
+                onChange={(e) => { setYoutubeUrl(e.target.value); setUrlError(null) }}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                aria-describedby={urlError ? 'url-error' : undefined}
+              />
+              {urlError && (
+                <p id="url-error" className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
+                  {urlError}
+                </p>
+              )}
+              <Button variant="primary" size="md" className="mt-2" onClick={handleLoadYouTube}>
+                Load YouTube
+              </Button>
+            </div>
+          </>
+        )}
+
+        {!hasResults && !showFallbackPaste && (
+          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading…</p>
+        )}
 
         <div className="mt-6 flex justify-end">
-          <button
-            type="button"
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
-            onClick={handleClose}
-          >
+          <Button variant="secondary" onClick={handleClose}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

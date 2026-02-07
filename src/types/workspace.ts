@@ -10,6 +10,7 @@ export const MAX_PDF_SIZE = 5 * 1024 * 1024
 export interface WorkspaceFolder {
   id: string
   kind: 'folder'
+  workspaceId: string
   name: string
   parentId: string | null
   createdAt: number
@@ -18,6 +19,7 @@ export interface WorkspaceFolder {
 export interface WorkspaceFile {
   id: string
   kind: 'file'
+  workspaceId: string
   folderId: string | null
   name: string
   fileType: FileType

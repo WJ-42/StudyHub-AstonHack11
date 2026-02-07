@@ -1,17 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as workspaceStore from '@/store/workspace'
 import type { WorkspaceItem, WorkspaceFolder, WorkspaceFile, SpotifyTrackMeta } from '@/types/workspace'
+import { useActiveWorkspace } from '@/contexts/WorkspaceContext'
 
 export function useWorkspace() {
+  const { activeWorkspaceId } = useActiveWorkspace()
   const [items, setItems] = useState<WorkspaceItem[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const all = await workspaceStore.getAllWorkspaceItems()
+    const all = await workspaceStore.getAllWorkspaceItems(activeWorkspaceId)
     setItems(all)
     setLoading(false)
-  }, [])
+  }, [activeWorkspaceId])
 
   useEffect(() => {
     load()
@@ -21,6 +23,7 @@ export function useWorkspace() {
     const folder: WorkspaceFolder = {
       id: workspaceStore.generateId(),
       kind: 'folder',
+      workspaceId: activeWorkspaceId,
       name: name || 'New folder',
       parentId,
       createdAt: Date.now(),
@@ -28,12 +31,13 @@ export function useWorkspace() {
     await workspaceStore.saveFolder(folder)
     await load()
     return folder.id
-  }, [load])
+  }, [load, activeWorkspaceId])
 
   const addFile = useCallback(async (folderId: string | null, name: string, fileType: 'text' | 'csv', content: string) => {
     const file: WorkspaceFile = {
       id: workspaceStore.generateId(),
       kind: 'file',
+      workspaceId: activeWorkspaceId,
       folderId,
       name,
       fileType,
@@ -43,13 +47,14 @@ export function useWorkspace() {
     await workspaceStore.saveFile(file)
     await load()
     return file.id
-  }, [load])
+  }, [load, activeWorkspaceId])
 
   const addDocxFile = useCallback(async (folderId: string | null, name: string, contentBase64: string, size: number) => {
     const now = Date.now()
     const file: WorkspaceFile = {
       id: workspaceStore.generateId(),
       kind: 'file',
+      workspaceId: activeWorkspaceId,
       folderId,
       name,
       fileType: 'docx',
@@ -61,13 +66,14 @@ export function useWorkspace() {
     await workspaceStore.saveFile(file)
     await load()
     return file.id
-  }, [load])
+  }, [load, activeWorkspaceId])
 
   const addPdfFile = useCallback(async (folderId: string | null, name: string, contentBase64: string, size: number) => {
     const now = Date.now()
     const file: WorkspaceFile = {
       id: workspaceStore.generateId(),
       kind: 'file',
+      workspaceId: activeWorkspaceId,
       folderId,
       name,
       fileType: 'pdf',
@@ -79,13 +85,14 @@ export function useWorkspace() {
     await workspaceStore.saveFile(file)
     await load()
     return file.id
-  }, [load])
+  }, [load, activeWorkspaceId])
 
   const addSpotifyTrackFile = useCallback(async (folderId: string | null, meta: SpotifyTrackMeta): Promise<string> => {
     const name = meta.name && meta.artists ? `${meta.name} – ${meta.artists}` : meta.name || 'Spotify track'
     const file: WorkspaceFile = {
       id: workspaceStore.generateId(),
       kind: 'file',
+      workspaceId: activeWorkspaceId,
       folderId,
       name,
       fileType: 'spotify',
@@ -95,7 +102,7 @@ export function useWorkspace() {
     await workspaceStore.saveFile(file)
     await load()
     return file.id
-  }, [load])
+  }, [load, activeWorkspaceId])
 
   const renameItem = useCallback(async (id: string, newName: string) => {
     const item = await workspaceStore.getItem(id)
@@ -108,12 +115,12 @@ export function useWorkspace() {
     await load()
   }, [load])
 
-  const deleteItem = useCallback(async (id: string): Promise<void> => {
+  const deleteItem = useCallback(async (id: string): Promise<string[]> => {
     const item = await workspaceStore.getItem(id)
-    if (!item) return
+    if (!item) return []
+    const toDelete = new Set<string>()
     if (item.kind === 'folder') {
-      const all = await workspaceStore.getAllWorkspaceItems()
-      const toDelete = new Set<string>()
+      const all = await workspaceStore.getAllWorkspaceItems(activeWorkspaceId)
       const collect = (folderId: string) => {
         toDelete.add(folderId)
         all.filter((i) => (i.kind === 'folder' ? i.parentId === folderId : i.folderId === folderId)).forEach((i) => {
@@ -122,14 +129,15 @@ export function useWorkspace() {
         })
       }
       collect(id)
-      for (const delId of toDelete) {
-        await workspaceStore.deleteItem(delId)
-      }
     } else {
-      await workspaceStore.deleteItem(id)
+      toDelete.add(id)
+    }
+    for (const delId of toDelete) {
+      await workspaceStore.deleteItem(delId)
     }
     await load()
-  }, [load])
+    return Array.from(toDelete)
+  }, [load, activeWorkspaceId])
 
   const getItem = useCallback((id: string) => items.find((i) => i.id === id), [items])
 

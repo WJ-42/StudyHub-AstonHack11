@@ -2,20 +2,26 @@ import { idbGetAll, idbPut, idbDelete, idbGetByIndex, idbGet } from './storage'
 import type { WorkspaceFolder, WorkspaceFile, WorkspaceItem } from '@/types/workspace'
 
 const WORKSPACE_STORE = 'workspace'
+const DEFAULT_WORKSPACE_ID = 'default'
 
-export async function getAllWorkspaceItems(): Promise<WorkspaceItem[]> {
-  const raw = await idbGetAll<WorkspaceItem>(WORKSPACE_STORE)
+export async function getAllWorkspaceItems(workspaceId: string): Promise<WorkspaceItem[]> {
+  const raw = await idbGetByIndex<WorkspaceItem>(WORKSPACE_STORE, 'workspaceId', workspaceId)
   return raw
 }
 
-export async function getFoldersByParent(parentId: string | null): Promise<WorkspaceFolder[]> {
-  const raw = await idbGetByIndex<WorkspaceFolder>(WORKSPACE_STORE, 'parentId', parentId)
-  return raw
+/** Returns all items (no filter). Used for migration only. */
+export async function getAllWorkspaceItemsUnscoped(): Promise<WorkspaceItem[]> {
+  return idbGetAll<WorkspaceItem>(WORKSPACE_STORE)
 }
 
-export async function getFilesByFolder(folderId: string | null): Promise<WorkspaceFile[]> {
-  const raw = await idbGetByIndex<WorkspaceFile>(WORKSPACE_STORE, 'folderId', folderId)
-  return raw
+export async function getFoldersByParent(workspaceId: string, parentId: string | null): Promise<WorkspaceFolder[]> {
+  const all = await getAllWorkspaceItems(workspaceId)
+  return all.filter((i): i is WorkspaceFolder => i.kind === 'folder' && i.parentId === parentId)
+}
+
+export async function getFilesByFolder(workspaceId: string, folderId: string | null): Promise<WorkspaceFile[]> {
+  const all = await getAllWorkspaceItems(workspaceId)
+  return all.filter((i): i is WorkspaceFile => i.kind === 'file' && i.folderId === folderId)
 }
 
 export async function getItem(id: string): Promise<WorkspaceItem | undefined> {
@@ -49,6 +55,16 @@ export async function deleteItem(id: string): Promise<void> {
   await idbDelete(WORKSPACE_STORE, id)
 }
 
+/** Delete all items in a workspace (for workspace delete). */
+export async function deleteAllItemsInWorkspace(workspaceId: string): Promise<void> {
+  const items = await getAllWorkspaceItems(workspaceId)
+  for (const item of items) {
+    await idbDelete(WORKSPACE_STORE, item.id)
+  }
+}
+
 export function generateId(): string {
   return crypto.randomUUID()
 }
+
+export { DEFAULT_WORKSPACE_ID }

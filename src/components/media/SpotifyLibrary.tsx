@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import {
   getPlaylists,
   getPlaylistsNext,
@@ -34,6 +35,7 @@ export function SpotifyLibrary({
   const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null)
   const [apiError, setApiError] = useState<string | null>(null)
   const { createFolder, addSpotifyTrackFile } = useWorkspace()
+  const { showToast } = useToast()
 
   const loadPlaylists = useCallback(async () => {
     setPlaylistsLoading(true)
@@ -171,7 +173,7 @@ export function SpotifyLibrary({
       setTimeout(() => setImportProgress(null), 3000)
     } catch (e) {
       setImportProgress(null)
-      window.alert(e instanceof Error ? e.message : 'Import failed.')
+      showToast(e instanceof Error ? e.message : 'Import failed.', 'error')
     }
   }, [tracks, view, selectedPlaylist, createFolder, addSpotifyTrackFile])
 

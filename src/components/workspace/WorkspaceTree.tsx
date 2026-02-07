@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import type { WorkspaceItem, WorkspaceFolder, WorkspaceFile } from '@/types/workspace'
 import { isFolder } from '@/types/workspace'
+import { Button } from '@/components/ui/Button'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 const DRAG_FILE_ID_KEY = 'application/x-workspace-file-id'
 
@@ -15,6 +17,7 @@ interface WorkspaceTreeProps {
   onImportFiles: (folderId: string | null) => void
   onRename: (id: string, newName: string) => void
   onDelete: (id: string, isFolder: boolean) => void
+  onRequestDelete?: (item: WorkspaceItem) => void
   moveFile: (fileId: string, folderId: string | null) => Promise<boolean>
   getItem: (id: string) => WorkspaceItem | undefined
   onMoveFeedback: (message: string) => void
@@ -38,6 +41,7 @@ function TreeRow({
   onOpenFile,
   onRename,
   onDelete,
+  onRequestDelete,
   onOpenFolder,
   onToggleExpand,
   selectedFolderId,
@@ -55,6 +59,7 @@ function TreeRow({
   onOpenFile: (id: string) => void
   onRename: (id: string, name: string) => void
   onDelete: (id: string, isFolder: boolean) => void
+  onRequestDelete?: (item: WorkspaceItem) => void
   onOpenFolder: (id: string | null) => void
   onToggleExpand: (folderId: string) => void
   selectedFolderId: string | null
@@ -95,12 +100,10 @@ function TreeRow({
     }
   }
 
-  const handleDelete = () => {
-    if (isF) {
-      if (window.confirm(`Delete folder "${item.name}" and all its contents?`)) onDelete(item.id, true)
-    } else {
-      if (window.confirm(`Delete file "${item.name}"?`)) onDelete(item.id, false)
-    }
+  const handleDeleteClick = () => {
+    if (onRequestDelete) onRequestDelete(item)
+    else if (isF) onDelete(item.id, true)
+    else onDelete(item.id, false)
   }
 
   const handleRowClick = () => {
@@ -167,7 +170,7 @@ function TreeRow({
             <button
               type="button"
               className="rounded p-0.5 hover:bg-red-200 dark:hover:bg-red-900/50"
-              onClick={(e) => { e.stopPropagation(); handleDelete() }}
+              onClick={(e) => { e.stopPropagation(); handleDeleteClick() }}
               aria-label="Delete"
             >
               🗑️
@@ -212,6 +215,7 @@ export function WorkspaceTree({
   setDragging,
 }: WorkspaceTreeProps) {
   const [dropTargetId, setDropTargetId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<WorkspaceItem | null>(null)
   const rootDropHighlight = dropTargetId === 'root'
 
   const handleFileDragStart = (e: React.DragEvent, fileId: string) => {
@@ -284,6 +288,7 @@ export function WorkspaceTree({
               onOpenFile={onOpenFile}
               onRename={onRename}
               onDelete={onDelete}
+              onRequestDelete={setPendingDelete}
               onOpenFolder={onSelectFolder}
               onToggleExpand={onToggleExpand}
               selectedFolderId={selectedFolderId}
@@ -306,6 +311,7 @@ export function WorkspaceTree({
           onOpenFile={onOpenFile}
           onRename={onRename}
           onDelete={onDelete}
+          onRequestDelete={setPendingDelete}
           onOpenFolder={onSelectFolder}
           onToggleExpand={onToggleExpand}
           selectedFolderId={selectedFolderId}
@@ -320,20 +326,12 @@ export function WorkspaceTree({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-wrap gap-2 p-2">
-        <button
-          type="button"
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700"
-          onClick={() => onCreateFolder(selectedFolderId)}
-        >
+        <Button variant="secondary" size="md" onClick={() => onCreateFolder(selectedFolderId)}>
           New folder
-        </button>
-        <button
-          type="button"
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700"
-          onClick={() => onImportFiles(selectedFolderId)}
-        >
+        </Button>
+        <Button variant="secondary" size="md" onClick={() => onImportFiles(selectedFolderId)}>
           Import file(s)
-        </button>
+        </Button>
       </div>
       <div className="min-h-0 flex-1 overflow-auto p-1">
         <div
@@ -352,6 +350,28 @@ export function WorkspaceTree({
         </div>
         {renderLevel(null, 0)}
       </div>
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title={pendingDelete && isFolder(pendingDelete) ? 'Delete folder' : 'Delete file'}
+        message={
+          pendingDelete
+            ? isFolder(pendingDelete)
+              ? `Delete folder "${pendingDelete.name}" and all its contents? This cannot be undone.`
+              : `Delete file "${pendingDelete.name}"? This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={() => {
+          if (pendingDelete) {
+            onDelete(pendingDelete.id, isFolder(pendingDelete))
+            setPendingDelete(null)
+          }
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }

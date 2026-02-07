@@ -18,7 +18,38 @@ import { isFile } from '@/types/workspace'
 
 function parseCsv(content: string): string[][] {
   const result = Papa.parse<string[]>(content, { skipEmptyLines: true })
-  return result.data
+  const data = (result.data as string[][]).filter((row) => row.length > 0)
+  if (!data.length) return data
+  return data.map((row) => row.map((cell) => (cell ?? '').trim()))
+}
+
+function isNumericValue(val: string): boolean {
+  if (val == null || String(val).trim() === '') return false
+  const n = Number(val)
+  return Number.isFinite(n)
+}
+
+function isColumnNumeric(rows: string[][], colIndex: number): boolean {
+  let numeric = 0
+  let total = 0
+  for (const row of rows) {
+    const val = row[colIndex]
+    if (val == null || String(val).trim() === '') continue
+    total++
+    if (isNumericValue(String(val))) numeric++
+  }
+  return total > 0 && numeric >= total / 2
+}
+
+function parseNumber(val: string): number | null {
+  if (val == null || String(val).trim() === '') return null
+  const n = Number(val)
+  return Number.isFinite(n) ? n : null
+}
+
+function isDateLike(val: string): boolean {
+  const s = String(val).trim()
+  return /^\d{4}-\d{2}-\d{2}/.test(s) || /^\d+$/.test(s)
 }
 
 export function CsvView() {
@@ -59,15 +90,63 @@ export function CsvView() {
   const xCol = prefs?.xColumn && headers.includes(prefs.xColumn) ? prefs.xColumn : headers[0]
   const yCol = prefs?.yColumn && headers.includes(prefs.yColumn) ? prefs.yColumn : headers[1]
   const chartType = prefs?.chartType ?? 'bar'
+  const aggregation = prefs?.aggregation ?? 'sum'
 
-  const chartData = dataRows.map((row) => {
-    const obj: Record<string, string | number> = {}
+  const xColIndex = headers.indexOf(xCol)
+  const yColIndex = headers.indexOf(yCol)
+  const yColNumeric = yColIndex >= 0 && isColumnNumeric(dataRows, yColIndex)
+  const xColNumeric = xColIndex >= 0 && isColumnNumeric(dataRows, xColIndex)
+
+  const rawChartData = dataRows.map((row) => {
+    const obj: Record<string, string | number | null> = {}
     headers.forEach((h, i) => {
-      const val = row[i]
-      obj[h] = Number.isFinite(Number(val)) ? Number(val) : (val ?? '')
+      const val = row[i] ?? ''
+      const num = parseNumber(String(val))
+      obj[h] = num !== null ? num : (val || '')
     })
     return obj
   })
+
+  const yValuesParseable = rawChartData.some((row) => {
+    const v = row[yCol]
+    return v !== undefined && v !== null && v !== '' && (typeof v === 'number' || !Number.isNaN(Number(v)))
+  })
+  const yHasNumeric = yColNumeric || yValuesParseable
+
+  let chartData: Record<string, string | number | null>[]
+  if (chartType === 'line') {
+    chartData = [...rawChartData].map((row) => ({
+      ...row,
+      [yCol]: typeof row[yCol] === 'number' ? row[yCol] : parseNumber(String(row[yCol] ?? '')),
+    })) as Record<string, string | number | null>[]
+    if (xCol && chartData.length > 0) {
+      const firstX = chartData[0][xCol]
+      if (xColNumeric && typeof firstX === 'number') {
+        chartData.sort((a, b) => (Number(a[xCol]) ?? 0) - (Number(b[xCol]) ?? 0))
+      } else if (typeof firstX === 'string' && isDateLike(firstX)) {
+        chartData.sort((a, b) => String(a[xCol]).localeCompare(String(b[xCol])))
+      }
+    }
+  } else {
+    const map = new Map<string, { sum: number; count: number }>()
+    for (const row of rawChartData) {
+      const xVal = String(row[xCol] ?? '')
+      const yNum = typeof row[yCol] === 'number' ? row[yCol] : parseNumber(String(row[yCol] ?? ''))
+      const y = yNum ?? 0
+      const cur = map.get(xVal)
+      if (!cur) map.set(xVal, { sum: y, count: 1 })
+      else {
+        cur.sum += y
+        cur.count += 1
+      }
+    }
+    const order = [...new Set(rawChartData.map((r) => String(r[xCol] ?? '')))]
+    chartData = order.map((xVal) => {
+      const cur = map.get(xVal)!
+      const y = aggregation === 'average' ? cur.sum / cur.count : cur.sum
+      return { [xCol]: xVal, [yCol]: y } as Record<string, string | number>
+    })
+  }
 
   if (csvFiles.length === 0) {
     return (
@@ -144,6 +223,20 @@ export function CsvView() {
                   <option value="line">Line</option>
                 </select>
               </div>
+              {chartType === 'bar' && (
+                <div>
+                  <label htmlFor="csv-agg" className="mr-2 text-sm text-slate-600 dark:text-slate-400">Aggregation</label>
+                  <select
+                    id="csv-agg"
+                    className="rounded border border-slate-300 bg-white px-2 py-1 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                    value={aggregation}
+                    onChange={(e) => savePrefs({ aggregation: e.target.value as 'sum' | 'average' })}
+                  >
+                    <option value="sum">Sum</option>
+                    <option value="average">Average</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
@@ -176,23 +269,39 @@ export function CsvView() {
 
           <div className="h-[300px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <h3 className="mb-2 text-sm font-medium text-slate-800 dark:text-slate-100">Chart</h3>
-            {xCol && yCol && chartData.length > 0 ? (
+            {xCol && yCol && !yHasNumeric ? (
+              <p className="text-amber-600 dark:text-amber-400">Selected Y column has no numeric data.</p>
+            ) : xCol && yCol && chartData.length > 0 && yHasNumeric ? (
               <ResponsiveContainer width="100%" height="90%">
                 {chartType === 'bar' ? (
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-600" />
-                    <XAxis dataKey={xCol} className="text-xs" />
-                    <YAxis className="text-xs" />
+                    <XAxis
+                      dataKey={xCol}
+                      className="text-xs"
+                      tickFormatter={(v) => (String(v).length > 12 ? String(v).slice(0, 10) + '…' : v)}
+                    />
+                    <YAxis
+                      className="text-xs"
+                      tickFormatter={(v) => (typeof v === 'number' && (v >= 1e6 || v <= -1e6 || (v < 0.01 && v > -0.01 && v !== 0)) ? v.toExponential(1) : String(v))}
+                    />
                     <Tooltip />
                     <Bar dataKey={yCol} fill="#3b82f6" />
                   </BarChart>
                 ) : (
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-600" />
-                    <XAxis dataKey={xCol} className="text-xs" />
-                    <YAxis className="text-xs" />
+                    <XAxis
+                      dataKey={xCol}
+                      className="text-xs"
+                      tickFormatter={(v) => (String(v).length > 12 ? String(v).slice(0, 10) + '…' : v)}
+                    />
+                    <YAxis
+                      className="text-xs"
+                      tickFormatter={(v) => (typeof v === 'number' && (v >= 1e6 || v <= -1e6 || (v < 0.01 && v > -0.01 && v !== 0)) ? v.toExponential(1) : String(v))}
+                    />
                     <Tooltip />
-                    <Line type="monotone" dataKey={yCol} stroke="#3b82f6" />
+                    <Line type="monotone" dataKey={yCol} stroke="#3b82f6" connectNulls={false} />
                   </LineChart>
                 )}
               </ResponsiveContainer>

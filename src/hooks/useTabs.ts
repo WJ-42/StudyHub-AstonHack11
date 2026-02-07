@@ -1,23 +1,26 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getTabsState, setTabsState } from '@/store/tabs'
+import { useActiveWorkspace } from '@/contexts/WorkspaceContext'
 
 export function useTabs() {
+  const { activeWorkspaceId } = useActiveWorkspace()
   const [openTabIds, setOpenTabIds] = useState<string[]>([])
   const [activeTabId, setActiveTabId] = useState<string | null>(null)
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    getTabsState().then((s) => {
+    setHydrated(false)
+    getTabsState(activeWorkspaceId).then((s) => {
       setOpenTabIds(s.openTabIds)
       setActiveTabId(s.activeTabId)
       setHydrated(true)
     })
-  }, [])
+  }, [activeWorkspaceId])
 
   useEffect(() => {
     if (!hydrated) return
-    setTabsState({ id: 'tabs', openTabIds, activeTabId }).catch(() => {})
-  }, [hydrated, openTabIds, activeTabId])
+    setTabsState(activeWorkspaceId, { openTabIds, activeTabId }).catch(() => {})
+  }, [hydrated, activeWorkspaceId, openTabIds, activeTabId])
 
   const openTab = useCallback((id: string) => {
     setOpenTabIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
@@ -36,6 +39,18 @@ export function useTabs() {
     })
   }, [])
 
+  const closeTabs = useCallback((ids: string[]) => {
+    const idSet = new Set(ids)
+    setOpenTabIds((prev) => {
+      const next = prev.filter((t) => !idSet.has(t))
+      setActiveTabId((active) => {
+        if (!active || !idSet.has(active)) return active
+        return next[0] ?? null
+      })
+      return next
+    })
+  }, [])
+
   const setActive = useCallback((id: string) => {
     setActiveTabId(id)
   }, [])
@@ -45,6 +60,7 @@ export function useTabs() {
     activeTabId,
     openTab,
     closeTab,
+    closeTabs,
     setActiveTab: setActive,
   }
 }

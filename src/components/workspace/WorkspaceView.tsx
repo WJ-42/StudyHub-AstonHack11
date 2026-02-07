@@ -2,7 +2,10 @@ import { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { useWorkspace } from '@/hooks/useWorkspace'
 import { useTabs } from '@/hooks/useTabs'
 import { useSearch } from '@/contexts/SearchContext'
+import { useToast } from '@/contexts/ToastContext'
 import { getWorkspaceExpandedFolders, setWorkspaceExpandedFolders } from '@/store/storage'
+import { Button } from '@/components/ui/Button'
+import { InputModal } from '@/components/ui/InputModal'
 import { WorkspaceTree } from './WorkspaceTree'
 import { DocumentEditor } from '@/components/editor/DocumentEditor'
 import { DocxViewer } from '@/components/docx/DocxViewer'
@@ -26,19 +29,22 @@ export function WorkspaceView() {
     moveFile,
   } = useWorkspace()
 
-  const handleDelete = (id: string, _isFolder: boolean) => {
+  const { showToast } = useToast()
+  const handleDelete = async (id: string, _isFolder: boolean) => {
     if (id === WORKSPACE_ROOT_ID) {
-      window.alert('Workspace cannot be removed.')
+      showToast('Workspace cannot be removed.', 'info')
       return
     }
-    deleteItem(id)
+    const deletedIds = await deleteItem(id)
+    if (deletedIds.length > 0) closeTabs(deletedIds)
   }
-  const { openTabIds, activeTabId, openTab, closeTab, setActiveTab } = useTabs()
+  const { openTabIds, activeTabId, openTab, closeTab, closeTabs, setActiveTab } = useTabs()
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [importTargetFolderId, setImportTargetFolderId] = useState<string | null>(null)
   const [expandedFolders, setExpandedFoldersState] = useState<Record<string, boolean>>(() => getWorkspaceExpandedFolders())
   const [moveMessage, setMoveMessage] = useState<string | null>(null)
   const [isDragging, setDragging] = useState(false)
+  const [newFolderParentId, setNewFolderParentId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -59,9 +65,16 @@ export function WorkspaceView() {
   }, [moveMessage])
 
   const handleCreateFolder = (parentId: string | null) => {
-    const name = window.prompt('Folder name', 'New folder')
-    if (name != null) createFolder(parentId, name.trim() || 'New folder')
+    setNewFolderParentId(parentId)
   }
+  const handleNewFolderSubmit = useCallback(
+    (name: string) => {
+      const parentId = newFolderParentId
+      setNewFolderParentId(null)
+      createFolder(parentId, name.trim() || 'New folder')
+    },
+    [newFolderParentId, createFolder]
+  )
 
   const handleImportRequest = (folderId: string | null) => {
     setImportTargetFolderId(folderId)
@@ -79,7 +92,7 @@ export function WorkspaceView() {
       try {
         if (ext === 'docx') {
           if (file.size > MAX_DOCX_SIZE) {
-            window.alert(`"${file.name}" is too large. Maximum size for DOCX files is 5 MB.`)
+            showToast(`"${file.name}" is too large. Maximum size for DOCX files is 5 MB.`, 'error')
             continue
           }
           const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
@@ -99,7 +112,7 @@ export function WorkspaceView() {
           openTab(fileId)
         } else if (ext === 'pdf') {
           if (file.size > MAX_PDF_SIZE) {
-            window.alert(`"${file.name}" is too large. Maximum size for PDF files is 5 MB.`)
+            showToast(`"${file.name}" is too large. Maximum size for PDF files is 5 MB.`, 'error')
             continue
           }
           const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
@@ -129,7 +142,7 @@ export function WorkspaceView() {
         }
       } catch (err) {
         console.error(err)
-        window.alert(`Could not import "${file.name}". Please try again.`)
+        showToast(`Could not import "${file.name}". Please try again.`, 'error')
       }
     }
     e.target.value = ''
@@ -227,13 +240,9 @@ export function WorkspaceView() {
               <p className="text-slate-600 dark:text-slate-400">
                 No files yet. Create a folder or import files to get started.
               </p>
-              <button
-                type="button"
-                className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow hover:bg-blue-700"
-                onClick={() => handleImportRequest(null)}
-              >
+              <Button variant="primary" size="lg" onClick={() => handleImportRequest(null)}>
                 Import files
-              </button>
+              </Button>
             </div>
           )}
           {!hasTabs && hasAnyItems && (
@@ -280,6 +289,16 @@ export function WorkspaceView() {
           )}
         </div>
       </div>
+
+      <InputModal
+        open={newFolderParentId !== null}
+        title="New folder"
+        label="Folder name"
+        defaultValue="New folder"
+        submitLabel="Create"
+        onSubmit={handleNewFolderSubmit}
+        onCancel={() => setNewFolderParentId(null)}
+      />
     </div>
   )
 }

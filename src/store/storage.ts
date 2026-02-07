@@ -1,5 +1,5 @@
 const DB_NAME = 'studyhub-db'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORES = ['workspace', 'tabs', 'study', 'csvPrefs'] as const
 
 let dbPromise: Promise<IDBDatabase> | null = null
@@ -17,6 +17,12 @@ function openDB(): Promise<IDBDatabase> {
         ws.createIndex('kind', 'kind', { unique: false })
         ws.createIndex('folderId', 'folderId', { unique: false })
         ws.createIndex('parentId', 'parentId', { unique: false })
+        ws.createIndex('workspaceId', 'workspaceId', { unique: false })
+      } else if (db.objectStoreNames.contains('workspace')) {
+        const ws = req.transaction!.objectStore('workspace')
+        if (!ws.indexNames.contains('workspaceId')) {
+          ws.createIndex('workspaceId', 'workspaceId', { unique: false })
+        }
       }
       if (!db.objectStoreNames.contains('tabs')) {
         db.createObjectStore('tabs', { keyPath: 'id' })
@@ -204,4 +210,67 @@ export function setMediaSpotifyYoutubeVideoId(videoId: string): void {
 
 export function removeMediaSpotifyYoutubeVideoId(): void {
   lsRemove(MEDIA_SPOTIFY_YOUTUBE_KEY)
+}
+
+const SPOTIFY_YOUTUBE_CACHE_KEY = 'spotify_youtube_cache'
+
+/** Last chosen YouTube videoId per normalized Spotify track URL. */
+export function getSpotifyYoutubeCache(): Record<string, string> {
+  try {
+    const raw = lsGet(SPOTIFY_YOUTUBE_CACHE_KEY)
+    if (!raw) return {}
+    return JSON.parse(raw) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
+export function setSpotifyYoutubeCacheEntry(spotifyTrackUrl: string, videoId: string): void {
+  const cache = getSpotifyYoutubeCache()
+  cache[spotifyTrackUrl] = videoId
+  lsSet(SPOTIFY_YOUTUBE_CACHE_KEY, JSON.stringify(cache))
+}
+
+const USER_AVATAR_KEY = 'user_avatar'
+
+/** User profile picture as base64 data URL. */
+export function getAvatar(): string | null {
+  return lsGet(USER_AVATAR_KEY)
+}
+
+export function setAvatar(dataUrl: string | null): void {
+  if (dataUrl == null) lsRemove(USER_AVATAR_KEY)
+  else lsSet(USER_AVATAR_KEY, dataUrl)
+}
+
+export interface WorkspaceMeta {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+}
+
+const WORKSPACE_LIST_KEY = 'workspace_list'
+const ACTIVE_WORKSPACE_ID_KEY = 'active_workspace_id'
+
+export function getWorkspaceList(): WorkspaceMeta[] {
+  try {
+    const raw = lsGet(WORKSPACE_LIST_KEY)
+    if (!raw) return []
+    return JSON.parse(raw) as WorkspaceMeta[]
+  } catch {
+    return []
+  }
+}
+
+export function setWorkspaceList(list: WorkspaceMeta[]): void {
+  lsSet(WORKSPACE_LIST_KEY, JSON.stringify(list))
+}
+
+export function getActiveWorkspaceId(): string | null {
+  return lsGet(ACTIVE_WORKSPACE_ID_KEY)
+}
+
+export function setActiveWorkspaceId(id: string): void {
+  lsSet(ACTIVE_WORKSPACE_ID_KEY, id)
 }

@@ -5,8 +5,13 @@ import {
   getMediaSpotifyYoutubeVideoId,
   setMediaSpotifyYoutubeVideoId,
   removeMediaSpotifyYoutubeVideoId,
+  getSpotifyYoutubeCache,
+  setSpotifyYoutubeCacheEntry,
 } from '@/store/storage'
+import { Button } from '@/components/ui/Button'
 import { FindOnYouTubeModal } from './FindOnYouTubeModal'
+import { normalizeSpotifyTrackUrl, fetchSpotifyOEmbed, buildSearchQueryFromOEmbed } from '@/services/spotifyOEmbed'
+import { searchYouTubeVideos, type YouTubeSearchItem } from '@/services/youtubeSearch'
 
 function getSpotifyEmbedUrl(url: string): string | null {
   try {
@@ -40,6 +45,12 @@ export function SpotifyDualModeCard() {
   const [spotifyError, setSpotifyError] = useState<string | null>(null)
   const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(() => getMediaSpotifyYoutubeVideoId())
   const [modalOpen, setModalOpen] = useState(false)
+  const [initialSearchQuery, setInitialSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<YouTubeSearchItem[] | null>(null)
+  const [spotifyTrackUrlForCache, setSpotifyTrackUrlForCache] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [showFallbackPaste, setShowFallbackPaste] = useState(false)
+  const [cachedVideoId, setCachedVideoId] = useState<string | null>(null)
 
   useEffect(() => {
     setSpotifyInput(savedSpotify)
@@ -95,6 +106,91 @@ export function SpotifyDualModeCard() {
   const handleYouTubeLoaded = (videoId: string) => {
     setMediaSpotifyYoutubeVideoId(videoId)
     setYoutubeVideoId(videoId)
+    if (spotifyTrackUrlForCache) {
+      setSpotifyYoutubeCacheEntry(spotifyTrackUrlForCache, videoId)
+    }
+  }
+
+  const handlePlayFullVersion = async () => {
+    const url = spotifyInput.trim() || savedSpotify
+    if (!url) {
+      setSpotifyError('Paste a Spotify link first.')
+      return
+    }
+    if (!isSpotifyLink(url)) {
+      setSpotifyError('Invalid Spotify link.')
+      return
+    }
+    setSpotifyError(null)
+
+    const normalized = normalizeSpotifyTrackUrl(url)
+    const cache = getSpotifyYoutubeCache()
+    const cached = normalized ? cache[normalized] ?? null : null
+    setSpotifyTrackUrlForCache(normalized || null)
+    setCachedVideoId(cached)
+
+    const apiKey = (import.meta.env.VITE_YOUTUBE_API_KEY as string | undefined) ?? ''
+    if (!apiKey.trim()) {
+      setErrorMessage('Missing YouTube API key. Add VITE_YOUTUBE_API_KEY to .env and restart dev server.')
+      setShowFallbackPaste(true)
+      setSearchResults(null)
+      setInitialSearchQuery('')
+      setModalOpen(true)
+      return
+    }
+
+    const oEmbed = await fetchSpotifyOEmbed(url)
+    if (!oEmbed?.title) {
+      setErrorMessage('Could not get track info from Spotify link.')
+      setShowFallbackPaste(true)
+      setSearchResults(null)
+      setInitialSearchQuery('')
+      setModalOpen(true)
+      return
+    }
+
+    const query = buildSearchQueryFromOEmbed(oEmbed.title, oEmbed.author_name)
+    setInitialSearchQuery(query)
+    let results: YouTubeSearchItem[] = []
+    try {
+      results = await searchYouTubeVideos(query, apiKey)
+    } catch {
+      results = []
+    }
+    if (!results.length) {
+      setErrorMessage('No YouTube results. Try pasting a YouTube video URL below.')
+      setShowFallbackPaste(true)
+      setSearchResults(null)
+      setModalOpen(true)
+      return
+    }
+    setErrorMessage(null)
+    setShowFallbackPaste(false)
+    setSearchResults(results)
+    setModalOpen(true)
+  }
+
+  const handleSearchAgain = async (query: string) => {
+    const apiKey = (import.meta.env.VITE_YOUTUBE_API_KEY as string | undefined) ?? ''
+    if (!apiKey.trim()) return
+    try {
+      const results = await searchYouTubeVideos(query.trim() || initialSearchQuery, apiKey)
+      setSearchResults(results)
+      setErrorMessage(results.length ? null : 'No results. Try a different query or paste a URL below.')
+      setShowFallbackPaste(results.length ? false : true)
+    } catch {
+      setErrorMessage('Search failed. Try pasting a YouTube video URL below.')
+      setShowFallbackPaste(true)
+    }
+  }
+
+  const handleModalClose = () => {
+    setModalOpen(false)
+    setSpotifyTrackUrlForCache(null)
+    setSearchResults(null)
+    setErrorMessage(null)
+    setShowFallbackPaste(false)
+    setCachedVideoId(null)
   }
 
   const hasSpotify = !!spotifyEmbedUrl
@@ -128,28 +224,21 @@ export function SpotifyDualModeCard() {
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+        <Button
+          variant="primary"
+          size="md"
+          className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
           onClick={handlePlayPreview}
         >
           Play preview (Spotify)
-        </button>
-        <button
-          type="button"
-          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          onClick={() => setModalOpen(true)}
-        >
+        </Button>
+        <Button variant="danger" size="md" onClick={handlePlayFullVersion}>
           Play full version (YouTube)
-        </button>
+        </Button>
         {(hasSpotify || hasYouTube) && (
-          <button
-            type="button"
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
-            onClick={handleClearAll}
-          >
+          <Button variant="secondary" size="md" onClick={handleClearAll}>
             Clear all
-          </button>
+          </Button>
         )}
       </div>
 
@@ -187,13 +276,20 @@ export function SpotifyDualModeCard() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             />
           </div>
-          <div className="mt-1 flex gap-2">
+          <div className="mt-1 flex flex-wrap gap-2">
             <button
               type="button"
               className="text-sm text-slate-500 underline hover:no-underline dark:text-slate-400"
               onClick={handleClearYouTube}
             >
               Clear YouTube
+            </button>
+            <button
+              type="button"
+              className="text-sm text-slate-500 underline hover:no-underline dark:text-slate-400"
+              onClick={handlePlayFullVersion}
+            >
+              Change video
             </button>
             <a
               href={`https://www.youtube.com/watch?v=${youtubeVideoId}`}
@@ -209,9 +305,14 @@ export function SpotifyDualModeCard() {
 
       <FindOnYouTubeModal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={handleModalClose}
         onLoaded={handleYouTubeLoaded}
-        initialSearchQuery=""
+        initialSearchQuery={initialSearchQuery}
+        searchResults={searchResults}
+        errorMessage={errorMessage}
+        showFallbackPaste={showFallbackPaste}
+        cachedVideoId={cachedVideoId}
+        onSearchAgain={handleSearchAgain}
       />
     </div>
   )

@@ -7,6 +7,8 @@ export interface CsvPrefs {
   xColumn?: string
   yColumn?: string
   chartType?: 'bar' | 'line'
+  /** For bar charts: aggregate duplicate x values (default sum). */
+  aggregation?: 'sum' | 'average'
 }
 
 export async function getCsvPrefs(fileId: string): Promise<CsvPrefs | undefined> {

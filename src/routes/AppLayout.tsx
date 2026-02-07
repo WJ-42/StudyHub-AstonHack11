@@ -2,6 +2,7 @@ import { Outlet, useParams, Navigate } from 'react-router-dom'
 import { TopBar } from '@/components/TopBar'
 import { Sidebar } from '@/components/Sidebar'
 import { LayoutProvider } from '@/contexts/LayoutContext'
+import { WorkspaceProvider } from '@/contexts/WorkspaceContext'
 import { type AppSection } from '@/types'
 import { isLoggedIn } from '@/store/session'
 
@@ -17,17 +18,19 @@ export function AppLayout() {
   const activeSection = VALID_SECTIONS.includes(sectionParam as AppSection) ? sectionParam : 'workspace'
 
   return (
-    <LayoutProvider>
-      <div className="flex h-screen flex-col bg-slate-100 dark:bg-slate-900">
-        <TopBar />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar />
-          <main className="flex-1 overflow-auto p-4 min-w-0" aria-label="Main content">
-            <Outlet context={{ section: activeSection }} />
-          </main>
+    <WorkspaceProvider>
+      <LayoutProvider>
+        <div className="flex h-screen flex-col bg-slate-100 dark:bg-slate-900">
+          <TopBar />
+          <div className="flex flex-1 overflow-hidden">
+            <Sidebar />
+            <main className="flex-1 overflow-auto p-4 min-w-0" aria-label="Main content">
+              <Outlet context={{ section: activeSection }} />
+            </main>
+          </div>
         </div>
-      </div>
-    </LayoutProvider>
+      </LayoutProvider>
+    </WorkspaceProvider>
   )
 }
 

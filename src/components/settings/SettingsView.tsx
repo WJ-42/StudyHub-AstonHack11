@@ -2,7 +2,7 @@ import { useSettings } from '@/contexts/SettingsContext'
 import { THEMES, type Theme } from '@/store/storage'
 
 export function SettingsView() {
-  const { theme, setTheme, compact, setCompact, sidebarCollapsed, setSidebarCollapsed } = useSettings()
+  const { theme, setTheme, compact, setCompact, sidebarCollapsed } = useSettings()
 
   return (
     <div className="space-y-6">
@@ -55,26 +55,7 @@ export function SettingsView() {
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100">Sidebar</h3>
-        <p className="mt-1 text-sm text-slate-500">Collapse the sidebar to show only icons.</p>
-        <div className="mt-3 flex items-center gap-2">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={sidebarCollapsed}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors ${
-              sidebarCollapsed ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
-            }`}
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                sidebarCollapsed ? 'translate-x-5' : 'translate-x-0.5'
-              }`}
-              style={{ marginTop: 2 }}
-            />
-          </button>
-          <span className="text-sm text-slate-700 dark:text-slate-300">{sidebarCollapsed ? 'Collapsed' : 'Expanded'}</span>
-        </div>
+        <p className="mt-1 text-sm text-slate-500">Sidebar is {sidebarCollapsed ? 'collapsed' : 'expanded'}. Use the collapse/expand button on the sidebar to change it.</p>
       </div>
     </div>
   )

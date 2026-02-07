@@ -1,7 +1,10 @@
-import { idbGet, idbPut } from './storage'
+import { idbGet, idbPut, idbDelete } from './storage'
 
 const TABS_STORE = 'tabs'
-const TABS_KEY = 'tabs'
+
+function tabsDocId(workspaceId: string): string {
+  return `tabs_${workspaceId}`
+}
 
 export interface TabsState {
   id: string
@@ -9,11 +12,17 @@ export interface TabsState {
   activeTabId: string | null
 }
 
-export async function getTabsState(): Promise<TabsState> {
-  const state = await idbGet<TabsState>(TABS_STORE, TABS_KEY)
-  return state ?? { id: TABS_KEY, openTabIds: [], activeTabId: null }
+export async function getTabsState(workspaceId: string): Promise<TabsState> {
+  const key = tabsDocId(workspaceId)
+  const state = await idbGet<TabsState>(TABS_STORE, key)
+  return state ?? { id: key, openTabIds: [], activeTabId: null }
 }
 
-export async function setTabsState(state: TabsState): Promise<void> {
-  await idbPut(TABS_STORE, { ...state, id: TABS_KEY })
+export async function setTabsState(workspaceId: string, state: Omit<TabsState, 'id'>): Promise<void> {
+  const id = tabsDocId(workspaceId)
+  await idbPut(TABS_STORE, { ...state, id })
+}
+
+export async function deleteTabsState(workspaceId: string): Promise<void> {
+  await idbDelete(TABS_STORE, tabsDocId(workspaceId))
 }

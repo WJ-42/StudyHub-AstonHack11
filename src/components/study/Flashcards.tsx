@@ -10,6 +10,7 @@ import {
   type FlashcardDeck,
   type Flashcard,
 } from '@/store/study'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 export function Flashcards() {
   const [decks, setDecks] = useState<FlashcardDeck[]>([])
@@ -22,6 +23,7 @@ export function Flashcards() {
   const [newDeckName, setNewDeckName] = useState('')
   const [newCardFront, setNewCardFront] = useState('')
   const [newCardBack, setNewCardBack] = useState('')
+  const [pendingDeleteDeckId, setPendingDeleteDeckId] = useState<string | null>(null)
 
   const loadDecks = useCallback(async () => {
     const d = await getDecks()
@@ -78,8 +80,14 @@ export function Flashcards() {
     setCards(updated)
   }
 
-  const handleDeleteDeck = async (id: string) => {
-    if (!window.confirm('Delete this deck and all its cards?')) return
+  const handleDeleteDeckClick = (id: string) => {
+    setPendingDeleteDeckId(id)
+  }
+
+  const handleDeleteDeckConfirm = async () => {
+    const id = pendingDeleteDeckId
+    setPendingDeleteDeckId(null)
+    if (!id) return
     await deleteDeck(id)
     if (selectedDeckId === id) setSelectedDeckId(null)
     await loadDecks()
@@ -163,7 +171,7 @@ export function Flashcards() {
                 >
                   {d.name}
                 </button>
-                <button type="button" className="text-red-600 hover:underline" onClick={() => handleDeleteDeck(d.id)} aria-label="Delete deck">×</button>
+                <button type="button" className="text-red-600 hover:underline" onClick={() => handleDeleteDeckClick(d.id)} aria-label="Delete deck">×</button>
               </li>
             ))}
           </ul>
@@ -222,6 +230,21 @@ export function Flashcards() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={pendingDeleteDeckId !== null}
+        title="Delete deck"
+        message={
+          pendingDeleteDeckId
+            ? `Delete deck "${decks.find((d) => d.id === pendingDeleteDeckId)?.name ?? 'Unknown'}" and all its cards? This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={handleDeleteDeckConfirm}
+        onCancel={() => setPendingDeleteDeckId(null)}
+      />
     </div>
   )
 }
