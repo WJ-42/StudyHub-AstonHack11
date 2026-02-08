@@ -23,9 +23,13 @@ function parseCsv(content: string): string[][] {
   return data.map((row) => row.map((cell) => (cell ?? '').trim()))
 }
 
+function normalizeForNumber(s: string): string {
+  return String(s).trim().replace(/,/g, '').replace(/\s/g, '')
+}
+
 function isNumericValue(val: string): boolean {
   if (val == null || String(val).trim() === '') return false
-  const n = Number(val)
+  const n = Number(normalizeForNumber(val))
   return Number.isFinite(n)
 }
 
@@ -43,7 +47,7 @@ function isColumnNumeric(rows: string[][], colIndex: number): boolean {
 
 function parseNumber(val: string): number | null {
   if (val == null || String(val).trim() === '') return null
-  const n = Number(val)
+  const n = Number(normalizeForNumber(val))
   return Number.isFinite(n) ? n : null
 }
 
