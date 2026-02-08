@@ -3,6 +3,7 @@ import { TopBar } from '@/components/TopBar'
 import { Sidebar } from '@/components/Sidebar'
 import { LayoutProvider } from '@/contexts/LayoutContext'
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext'
+import { PersistentMediaPlayer } from '@/components/media/PersistentMediaPlayer'
 import { type AppSection } from '@/types'
 import { isLoggedIn } from '@/store/session'
 
@@ -24,10 +25,13 @@ export function AppLayout() {
           <TopBar />
           <div className="flex flex-1 overflow-hidden">
             <Sidebar />
-            <main className="flex-1 overflow-auto p-4 min-w-0" aria-label="Main content">
-              <Outlet context={{ section: activeSection }} />
+            <main className="flex-1 overflow-auto p-4 pb-0 min-w-0" aria-label="Main content">
+              <div className="pb-4">
+                <Outlet context={{ section: activeSection }} />
+              </div>
             </main>
           </div>
+          <PersistentMediaPlayer />
         </div>
       </LayoutProvider>
     </WorkspaceProvider>

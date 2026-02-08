@@ -76,7 +76,7 @@ export function TopBar() {
             <span className="hidden text-sm text-slate-700 dark:text-slate-300 sm:inline">{name || 'User'}</span>
           </button>
           {userMenuOpen && (
-            <div className="absolute right-0 top-full mt-1 min-w-[140px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+            <div className="absolute right-0 top-full z-50 mt-1 min-w-[140px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
               <button
                 type="button"
                 className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"

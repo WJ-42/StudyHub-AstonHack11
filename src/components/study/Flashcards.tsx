@@ -24,6 +24,9 @@ export function Flashcards() {
   const [newCardFront, setNewCardFront] = useState('')
   const [newCardBack, setNewCardBack] = useState('')
   const [pendingDeleteDeckId, setPendingDeleteDeckId] = useState<string | null>(null)
+  const [editingCardId, setEditingCardId] = useState<string | null>(null)
+  const [editFront, setEditFront] = useState('')
+  const [editBack, setEditBack] = useState('')
 
   const loadDecks = useCallback(async () => {
     const d = await getDecks()
@@ -99,6 +102,33 @@ export function Flashcards() {
     setCards(updated)
   }
 
+  const handleEditCard = (card: Flashcard) => {
+    setEditingCardId(card.id)
+    setEditFront(card.front)
+    setEditBack(card.back)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingCardId || !selectedDeckId) return
+    const card = cards.find((c) => c.id === editingCardId)
+    if (!card) return
+    const updated: Flashcard = {
+      ...card,
+      front: editFront.trim() || 'Front',
+      back: editBack.trim() || 'Back',
+    }
+    await saveCard(updated)
+    setEditingCardId(null)
+    const refreshed = await getCards(selectedDeckId)
+    setCards(refreshed)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingCardId(null)
+    setEditFront('')
+    setEditBack('')
+  }
+
   if (mode === 'study' && currentCard) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
@@ -109,16 +139,16 @@ export function Flashcards() {
           <span className="text-sm text-slate-500">{studyIndex + 1} / {studyCards.length}</span>
         </div>
         <div
-          className="min-h-[200px] cursor-pointer rounded-lg border-2 border-slate-200 bg-slate-50 p-6 dark:border-slate-600 dark:bg-slate-700/50"
+          className="min-h-[200px] cursor-pointer rounded-lg border-2 border-border-default bg-flashcard p-6"
           onClick={() => setFlipped((f) => !f)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && setFlipped((f) => !f)}
         >
-          <p className="text-lg text-slate-800 dark:text-slate-100">
+          <p className="text-lg text-text-primary">
             {flipped ? currentCard.back : currentCard.front}
           </p>
-          <p className="mt-2 text-xs text-slate-500">{flipped ? 'Back' : 'Front'} (click to flip)</p>
+          <p className="mt-2 text-xs text-text-muted">{flipped ? 'Back' : 'Front'} (click to flip)</p>
         </div>
         <div className="mt-4 flex gap-2">
           <button
@@ -211,9 +241,37 @@ export function Flashcards() {
               </div>
               <ul className="mt-4 space-y-2">
                 {cards.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between rounded border border-slate-200 p-2 dark:border-slate-600">
-                    <span className="text-sm text-slate-700 dark:text-slate-300">{c.front} → {c.back}</span>
-                    <button type="button" className="text-red-600 hover:underline" onClick={() => handleDeleteCard(c.id)} aria-label="Delete card">×</button>
+                  <li key={c.id} className="rounded border border-slate-200 p-2 dark:border-slate-600">
+                    {editingCardId === c.id ? (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={editFront}
+                          onChange={(e) => setEditFront(e.target.value)}
+                          className="w-full rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                          placeholder="Front"
+                        />
+                        <input
+                          type="text"
+                          value={editBack}
+                          onChange={(e) => setEditBack(e.target.value)}
+                          className="w-full rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                          placeholder="Back"
+                        />
+                        <div className="flex gap-2">
+                          <button type="button" className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700" onClick={handleSaveEdit}>Save</button>
+                          <button type="button" className="rounded border border-slate-300 px-3 py-1 text-sm dark:border-slate-600" onClick={handleCancelEdit}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{c.front} → {c.back}</span>
+                        <div className="flex gap-2">
+                          <button type="button" className="text-blue-600 hover:underline dark:text-blue-400" onClick={() => handleEditCard(c)} aria-label="Edit card">Edit</button>
+                          <button type="button" className="text-red-600 hover:underline" onClick={() => handleDeleteCard(c.id)} aria-label="Delete card">Delete</button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>

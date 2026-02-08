@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getCustomTimerState, setCustomTimerState, type CustomTimerState } from '@/store/study'
+import { requestNotificationPermission, showNotification } from '@/utils/notifications'
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -32,6 +33,7 @@ export function CustomTimer() {
         const nextState = { ...s, remainingSeconds: 0, isRunning: false }
         await setCustomTimerState(nextState)
         setState(nextState)
+        showNotification('Custom Timer Complete', { body: 'Your timer has finished!' })
       } else {
         const nextState = { ...s, remainingSeconds: next }
         await setCustomTimerState(nextState)
@@ -54,6 +56,7 @@ export function CustomTimer() {
   }
 
   const start = async () => {
+    await requestNotificationPermission()
     const next = { ...state, isRunning: true }
     await setCustomTimerState(next)
     setState(next)

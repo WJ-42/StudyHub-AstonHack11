@@ -1,16 +1,59 @@
 import { useState, useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
 import { getMediaLinks, setMediaLinks } from '@/store/storage'
-import { useSpotify } from '@/hooks/useSpotify'
-import { SpotifyLibrary } from './SpotifyLibrary'
 import { SpotifyDualModeCard } from './SpotifyDualModeCard'
+import { useMedia } from '@/contexts/MediaContext'
+import { notifyClearRequested } from '@/utils/playerSync'
 
 type Provider = 'spotify' | 'youtube'
 
+/**
+ * Extracts YouTube video ID from various URL formats
+ * Returns null if invalid or missing
+ */
+function extractYouTubeVideoId(input: string): string | null {
+  const trimmed = input.trim()
+  if (!trimmed) return null
+  
+  try {
+    // Handle URLs without protocol
+    const urlString = trimmed.startsWith('http') ? trimmed : `https://${trimmed}`
+    const u = new URL(urlString)
+    
+    // Standard: youtube.com/watch?v=VIDEO_ID
+    if (u.hostname === 'www.youtube.com' || u.hostname === 'youtube.com' || u.hostname === 'm.youtube.com') {
+      const videoId = u.searchParams.get('v')
+      if (videoId) return videoId.split('&')[0] // Remove any trailing params
+    }
+    
+    // Short: youtu.be/VIDEO_ID
+    if (u.hostname === 'youtu.be') {
+      const videoId = u.pathname.slice(1).split('/')[0].split('?')[0]
+      if (videoId) return videoId
+    }
+    
+    // Embed: youtube.com/embed/VIDEO_ID
+    if ((u.hostname === 'www.youtube.com' || u.hostname === 'youtube.com') && u.pathname.startsWith('/embed/')) {
+      const videoId = u.pathname.split('/')[2]?.split('?')[0]
+      if (videoId) return videoId
+    }
+  } catch {
+    // Invalid URL format
+  }
+  
+  return null
+}
+
+/**
+ * Builds YouTube embed URL from video ID
+ */
+function buildYouTubeEmbedUrl(videoId: string): string {
+  return `https://www.youtube.com/embed/${videoId}`
+}
+
 function getEmbedUrl(provider: Provider, url: string): string | null {
   try {
-    const u = new URL(url.trim())
     if (provider === 'spotify') {
+      const u = new URL(url.trim())
       if (u.hostname.includes('open.spotify.com')) {
         const path = u.pathname + u.search
         return `https://open.spotify.com/embed${path}`
@@ -18,9 +61,10 @@ function getEmbedUrl(provider: Provider, url: string): string | null {
       return null
     }
     if (provider === 'youtube') {
-      let vid = u.searchParams.get('v')
-      if (!vid && u.hostname === 'youtu.be') vid = u.pathname.slice(1)
-      if (vid) return `https://www.youtube.com/embed/${vid}`
+      const videoId = extractYouTubeVideoId(url)
+      if (videoId) {
+        return buildYouTubeEmbedUrl(videoId)
+      }
       return null
     }
   } catch {
@@ -60,23 +104,35 @@ function MediaBlock({
   provider: Provider
   storageKey: keyof ReturnType<typeof getMediaLinks>
 }) {
+  const { playerOwner, setYoutubeVideoId } = useMedia()
   const links = getMediaLinks()
   const saved = links[storageKey] ?? ''
   const [input, setInput] = useState(saved)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [playerError, setPlayerError] = useState<string | null>(null)
   const [clearedMessage, setClearedMessage] = useState<string | null>(null)
   const clearMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
     setInput(saved)
     if (saved) {
       const embed = getEmbedUrl(provider, saved)
       setEmbedUrl(embed)
+      // Update MediaContext for YouTube
+      if (provider === 'youtube' && embed) {
+        const videoId = extractYouTubeVideoId(saved)
+        setYoutubeVideoId(videoId)
+      }
     } else {
       setEmbedUrl(null)
+      // Clear MediaContext for YouTube
+      if (provider === 'youtube') {
+        setYoutubeVideoId(null)
+      }
     }
-  }, [saved, provider])
+  }, [saved, provider, setYoutubeVideoId])
 
   useEffect(() => {
     return () => {
@@ -97,9 +153,53 @@ function MediaBlock({
     setEmbedUrl(null)
     setInput('')
     setLoadError(null)
+    setPlayerError(null)
     const next = { ...getMediaLinks(), [storageKey]: '' }
     setMediaLinks(next)
     showClearedFeedback()
+    // Clear MediaContext for YouTube
+    if (provider === 'youtube') {
+      setYoutubeVideoId(null)
+    }
+    // Notify pop-out to close if it's open
+    notifyClearRequested()
+  }
+
+  /**
+   * Sanitize YouTube input: extract first valid URL if multiple exist
+   */
+  const sanitizeInput = (rawInput: string): string => {
+    if (provider !== 'youtube') return rawInput.trim()
+    
+    const trimmed = rawInput.trim()
+    if (!trimmed) return ''
+    
+    // If input contains multiple URLs (e.g., duplicated), extract the first valid one
+    const lines = trimmed.split(/[\s\n]+/)
+    for (const line of lines) {
+      const videoId = extractYouTubeVideoId(line)
+      if (videoId) {
+        // Return the canonical URL format
+        return `https://www.youtube.com/watch?v=${videoId}`
+      }
+    }
+    
+    return trimmed
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value
+    const sanitized = sanitizeInput(rawValue)
+    setInput(sanitized)
+    setLoadError(null)
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedText = e.clipboardData.getData('text')
+    const sanitized = sanitizeInput(pastedText)
+    setInput(sanitized)
+    setLoadError(null)
   }
 
   const handleLoad = () => {
@@ -108,16 +208,49 @@ function MediaBlock({
       handleClear()
       return
     }
+    
     const embed = getEmbedUrl(provider, trimmed)
     if (!embed) {
-      setLoadError('Invalid link for this provider.')
+      if (provider === 'youtube') {
+        setLoadError('Invalid YouTube link. Use youtube.com/watch?v=..., youtu.be/..., or youtube.com/embed/... format.')
+      } else {
+        setLoadError('Invalid link for this provider.')
+      }
       return
     }
+    
     setEmbedUrl(embed)
     setLoadError(null)
+    setPlayerError(null)
     const next = { ...getMediaLinks(), [storageKey]: trimmed }
     setMediaLinks(next)
+    
+    // Update MediaContext for YouTube
+    if (provider === 'youtube') {
+      const videoId = extractYouTubeVideoId(trimmed)
+      setYoutubeVideoId(videoId)
+    }
   }
+
+  // Listen for iframe load errors (YouTube particularly)
+  useEffect(() => {
+    if (!embedUrl || !iframeRef.current) return
+
+    const handleIframeError = () => {
+      if (provider === 'youtube') {
+        setPlayerError('YouTube player failed to load. The video may be unavailable or restricted.')
+      } else {
+        setPlayerError('Player failed to load. Please check the link and try again.')
+      }
+    }
+
+    const iframe = iframeRef.current
+    iframe.addEventListener('error', handleIframeError)
+
+    return () => {
+      iframe.removeEventListener('error', handleIframeError)
+    }
+  }, [embedUrl, provider])
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
@@ -128,9 +261,11 @@ function MediaBlock({
           type="url"
           placeholder={`Paste ${title} link...`}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInputChange}
+          onPaste={handlePaste}
           className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           aria-label={`${title} URL`}
+          aria-describedby={loadError ? `${storageKey}-error` : undefined}
         />
         <button
           type="button"
@@ -148,7 +283,7 @@ function MediaBlock({
         </button>
       </div>
       {loadError && (
-        <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+        <p id={`${storageKey}-error`} className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
           {loadError}
         </p>
       )}
@@ -157,6 +292,9 @@ function MediaBlock({
           {clearedMessage}
         </p>
       )}
+      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        Playback continues in the bar below.
+      </p>
       {embedUrl && saved && (
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           Currently loaded: {getLoadedLabel(saved)}{' '}
@@ -170,48 +308,42 @@ function MediaBlock({
         </p>
       )}
       {embedUrl && (
-        <div
-          className={`mt-4 w-full overflow-hidden rounded-lg bg-slate-900 ${provider === 'youtube' ? 'aspect-video' : ''}`}
-          style={provider !== 'youtube' ? { height: EMBED_HEIGHT[provider] } : undefined}
-        >
-          <iframe
-            title={title}
-            src={embedUrl}
-            className="block h-full w-full border-0"
-            allowFullScreen
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          />
-        </div>
+        <>
+          {playerError && (
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950">
+              <p className="text-sm text-amber-800 dark:text-amber-200" role="alert">
+                {playerError}
+              </p>
+            </div>
+          )}
+          <div
+            className={`mt-4 w-full overflow-hidden rounded-lg bg-slate-900 ${provider === 'youtube' ? 'aspect-video' : ''}`}
+            style={provider !== 'youtube' ? { height: EMBED_HEIGHT[provider] } : undefined}
+          >
+            {playerOwner === 'popout' ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-slate-400">
+                  Playing in pop-out window. Close pop-out to resume here.
+                </p>
+              </div>
+            ) : (
+              <iframe
+                ref={iframeRef}
+                title={title}
+                src={embedUrl}
+                className="block h-full w-full border-0"
+                allowFullScreen
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              />
+            )}
+          </div>
+        </>
       )}
     </div>
   )
 }
 
 export function MediaView() {
-  const location = useLocation()
-  const spotifyState = (location.state as { spotifyConnected?: boolean; spotifyError?: boolean }) ?? {}
-  const [spotifyMessage, setSpotifyMessage] = useState<string | null>(null)
-  const [spotifyEmbedKey, setSpotifyEmbedKey] = useState(0)
-  const { isConfigured: spotifyConfigured, isConnected: spotifyConnected, user: spotifyUser, loading: spotifyLoading, error: spotifyError, connect: spotifyConnect, disconnect: spotifyDisconnect, refreshConnection: spotifyRefresh } = useSpotify()
-
-  useEffect(() => {
-    if (spotifyState.spotifyConnected) {
-      setSpotifyMessage('Connected to Spotify.')
-      const t = setTimeout(() => setSpotifyMessage(null), 4000)
-      return () => clearTimeout(t)
-    }
-    if (spotifyState.spotifyError) {
-      setSpotifyMessage('Could not connect to Spotify. Try again.')
-      const t = setTimeout(() => setSpotifyMessage(null), 5000)
-      return () => clearTimeout(t)
-    }
-  }, [spotifyState.spotifyConnected, spotifyState.spotifyError])
-
-  const handleSetSpotifyEmbed = (url: string) => {
-    setMediaLinks({ ...getMediaLinks(), spotify: url })
-    setSpotifyEmbedKey((k) => k + 1)
-  }
-
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Media Player Hub</h2>
@@ -219,71 +351,7 @@ export function MediaView() {
         Playback and volume controls are handled by the provider embed.
       </p>
 
-      {spotifyConfigured && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Connect Spotify</h3>
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-            Connect your account to import Liked Songs and playlists into Workspace (metadata only).
-          </p>
-          {spotifyMessage && (
-            <p className={`mt-2 text-sm ${spotifyMessage.includes('Could not') ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`} role="status">
-              {spotifyMessage}
-            </p>
-          )}
-          {spotifyError && (
-            <p className="mt-2 text-sm text-amber-600 dark:text-amber-400" role="alert">
-              {spotifyError} You may need to reconnect.
-            </p>
-          )}
-          {!spotifyConnected ? (
-            <div className="mt-4">
-              {spotifyLoading ? (
-                <p className="text-sm text-slate-500">Checking connection…</p>
-              ) : (
-                <button
-                  type="button"
-                  className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                  onClick={spotifyConnect}
-                >
-                  Connect Spotify
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              {spotifyUser?.images?.[0]?.url && (
-                <img src={spotifyUser.images[0].url} alt="" className="h-10 w-10 rounded-full object-cover" />
-              )}
-              <div>
-                <p className="font-medium text-slate-800 dark:text-slate-100">
-                  {spotifyUser?.display_name ?? 'Spotify user'}
-                </p>
-                <span className="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
-                  Connected
-                </span>
-              </div>
-              <button
-                type="button"
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
-                onClick={() => spotifyRefresh()}
-              >
-                Refresh
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
-                onClick={spotifyDisconnect}
-              >
-                Disconnect
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {spotifyConnected && spotifyConfigured && <SpotifyLibrary onSetEmbedUrl={handleSetSpotifyEmbed} />}
-
-      <SpotifyDualModeCard key={spotifyEmbedKey} />
+      <SpotifyDualModeCard />
 
       <MediaBlock title="YouTube" provider="youtube" storageKey="youtube" />
     </div>

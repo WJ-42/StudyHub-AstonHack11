@@ -33,7 +33,7 @@ function base64ToBlobUrl(base64: string, mime: string): string {
   return URL.createObjectURL(blob)
 }
 
-export function PdfViewer({ fileName, contentBase64, fileId: _fileId, size: _size }: PdfViewerProps) {
+export function PdfViewer({ contentBase64, fileId: _fileId, size: _size }: PdfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [numPages, setNumPages] = useState<number>(0)
@@ -101,15 +101,6 @@ export function PdfViewer({ fileName, contentBase64, fileId: _fileId, size: _siz
     pageWidthRef.current = page.width
     setPageWidth(page.width)
   }, [])
-
-  const handleDownload = () => {
-    const url = base64ToBlobUrl(contentBase64, 'application/pdf')
-    const a = document.createElement('a')
-    a.href = url
-    a.download = fileName
-    a.click()
-    URL.revokeObjectURL(url)
-  }
 
   const zoomIn = () => {
     const idx = ZOOM_LEVELS.indexOf(zoom)
@@ -186,14 +177,6 @@ export function PdfViewer({ fileName, contentBase64, fileId: _fileId, size: _siz
             Page {currentPage} of {numPages}
           </span>
         )}
-        <button
-          type="button"
-          className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600"
-          onClick={handleDownload}
-          aria-label="Download original PDF"
-        >
-          Download original
-        </button>
       </div>
       <div className="flex-1 overflow-auto bg-slate-300 p-4 dark:bg-slate-600" style={{ minHeight: 400 }}>
         {loading && (
@@ -212,7 +195,7 @@ export function PdfViewer({ fileName, contentBase64, fileId: _fileId, size: _siz
             {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
               <div
                 key={pageNum}
-                className="bg-white shadow-lg dark:bg-slate-900"
+                className="relative bg-white shadow-lg dark:bg-slate-900"
                 ref={(el) => { pageRefs.current[pageNum - 1] = el }}
                 data-page-number={pageNum}
               >

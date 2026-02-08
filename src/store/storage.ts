@@ -107,12 +107,12 @@ export function lsRemove(key: string): void {
   localStorage.removeItem(LS_PREFIX + key)
 }
 
-export type Theme = 'light' | 'dark' | 'sepia'
-export const THEMES: Theme[] = ['light', 'dark', 'sepia']
+export type Theme = 'light' | 'dark' | 'cyberpunk' | 'octopus'
+export const THEMES: Theme[] = ['light', 'dark', 'cyberpunk', 'octopus']
 
 export function getTheme(): Theme {
   const v = lsGet('theme')
-  if (v === 'light' || v === 'dark' || v === 'sepia') return v
+  if (v === 'light' || v === 'dark' || v === 'cyberpunk' || v === 'octopus') return v
   return 'light'
 }
 
@@ -134,6 +134,32 @@ export function getSidebarCollapsed(): boolean {
 
 export function setSidebarCollapsed(value: boolean): void {
   lsSet('sidebar_collapsed', value ? 'true' : 'false')
+}
+
+const STUDY_LAST_MODE_KEY = 'study_last_mode'
+
+export type StudyMode = 'pomodoro' | 'timer' | 'flashcards' | '5217' | 'timeboxing' | 'spacedrep'
+
+export function getStudyLastMode(): StudyMode | null {
+  const v = lsGet(STUDY_LAST_MODE_KEY)
+  if (v && ['pomodoro', 'timer', 'flashcards', '5217', 'timeboxing', 'spacedrep'].includes(v)) return v as StudyMode
+  return null
+}
+
+export function setStudyLastMode(mode: StudyMode): void {
+  lsSet(STUDY_LAST_MODE_KEY, mode)
+}
+
+const REDUCE_MOTION_KEY = 'reduce_motion'
+
+export function getReduceMotion(): boolean {
+  const v = lsGet(REDUCE_MOTION_KEY)
+  if (v === 'true' || v === 'false') return v === 'true'
+  return false
+}
+
+export function setReduceMotion(value: boolean): void {
+  lsSet(REDUCE_MOTION_KEY, value ? 'true' : 'false')
 }
 
 export interface MediaLinks {
@@ -169,32 +195,6 @@ export function getWorkspaceExpandedFolders(): Record<string, boolean> {
 
 export function setWorkspaceExpandedFolders(expanded: Record<string, boolean>): void {
   lsSet(WORKSPACE_EXPANDED_KEY, JSON.stringify(expanded))
-}
-
-const SPOTIFY_TOKENS_KEY = 'spotify_tokens'
-
-export interface SpotifyTokens {
-  access_token: string
-  expires_at: number
-  refresh_token?: string
-}
-
-export function getSpotifyTokens(): SpotifyTokens | null {
-  try {
-    const raw = lsGet(SPOTIFY_TOKENS_KEY)
-    if (!raw) return null
-    return JSON.parse(raw) as SpotifyTokens
-  } catch {
-    return null
-  }
-}
-
-export function setSpotifyTokens(tokens: SpotifyTokens): void {
-  lsSet(SPOTIFY_TOKENS_KEY, JSON.stringify(tokens))
-}
-
-export function removeSpotifyTokens(): void {
-  lsRemove(SPOTIFY_TOKENS_KEY)
 }
 
 const MEDIA_SPOTIFY_YOUTUBE_KEY = 'media_spotify_youtube'
@@ -243,6 +243,39 @@ export function setAvatar(dataUrl: string | null): void {
   else lsSet(USER_AVATAR_KEY, dataUrl)
 }
 
+const RECENT_FILES_KEY = 'recent_files'
+
+export interface RecentFile {
+  fileId: string
+  openedAt: number
+}
+
+/** Get recent files list (max 10). */
+export function getRecentFiles(): RecentFile[] {
+  try {
+    const raw = lsGet(RECENT_FILES_KEY)
+    if (!raw) return []
+    return JSON.parse(raw) as RecentFile[]
+  } catch {
+    return []
+  }
+}
+
+/** Add a file to recent files list. */
+export function addRecentFile(fileId: string): void {
+  const recent = getRecentFiles()
+  const existing = recent.find((r) => r.fileId === fileId)
+  if (existing) {
+    existing.openedAt = Date.now()
+  } else {
+    recent.push({ fileId, openedAt: Date.now() })
+  }
+  // Sort by most recent first, keep max 10
+  recent.sort((a, b) => b.openedAt - a.openedAt)
+  const trimmed = recent.slice(0, 10)
+  lsSet(RECENT_FILES_KEY, JSON.stringify(trimmed))
+}
+
 export interface WorkspaceMeta {
   id: string
   name: string
@@ -273,4 +306,33 @@ export function getActiveWorkspaceId(): string | null {
 
 export function setActiveWorkspaceId(id: string): void {
   lsSet(ACTIVE_WORKSPACE_ID_KEY, id)
+}
+
+const ANNOTATIONS_PREFIX = 'file_annotations_'
+
+export interface FileAnnotation {
+  id: string
+  fileId: string
+  type: 'note' | 'highlight'
+  pageIndex?: number
+  x?: number
+  y?: number
+  text?: string
+  color?: string
+  createdAt: number
+  updatedAt?: number
+}
+
+export function getFileAnnotations(fileId: string): FileAnnotation[] {
+  try {
+    const raw = lsGet(ANNOTATIONS_PREFIX + fileId)
+    if (!raw) return []
+    return JSON.parse(raw) as FileAnnotation[]
+  } catch {
+    return []
+  }
+}
+
+export function setFileAnnotations(fileId: string, annotations: FileAnnotation[]): void {
+  lsSet(ANNOTATIONS_PREFIX + fileId, JSON.stringify(annotations))
 }

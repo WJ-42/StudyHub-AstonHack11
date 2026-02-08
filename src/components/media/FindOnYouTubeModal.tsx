@@ -23,19 +23,33 @@ export interface FindOnYouTubeModalProps {
 function extractYouTubeVideoId(input: string): string | null {
   const trimmed = input.trim()
   if (!trimmed) return null
+  
   try {
-    const u = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`)
-    if (u.hostname === 'www.youtube.com' || u.hostname === 'youtube.com') {
-      const v = u.searchParams.get('v')
-      if (v) return v
+    // Handle URLs without protocol
+    const urlString = trimmed.startsWith('http') ? trimmed : `https://${trimmed}`
+    const u = new URL(urlString)
+    
+    // Standard: youtube.com/watch?v=VIDEO_ID
+    if (u.hostname === 'www.youtube.com' || u.hostname === 'youtube.com' || u.hostname === 'm.youtube.com') {
+      const videoId = u.searchParams.get('v')
+      if (videoId) return videoId.split('&')[0] // Remove any trailing params
     }
+    
+    // Short: youtu.be/VIDEO_ID
     if (u.hostname === 'youtu.be') {
-      const id = u.pathname.slice(1).split('/')[0]
-      if (id) return id
+      const videoId = u.pathname.slice(1).split('/')[0].split('?')[0]
+      if (videoId) return videoId
+    }
+    
+    // Embed: youtube.com/embed/VIDEO_ID
+    if ((u.hostname === 'www.youtube.com' || u.hostname === 'youtube.com') && u.pathname.startsWith('/embed/')) {
+      const videoId = u.pathname.split('/')[2]?.split('?')[0]
+      if (videoId) return videoId
     }
   } catch {
-    // ignore
+    // Invalid URL format
   }
+  
   return null
 }
 
@@ -75,7 +89,7 @@ export function FindOnYouTubeModal({
     setUrlError(null)
     const videoId = extractYouTubeVideoId(youtubeUrl)
     if (!videoId) {
-      setUrlError('Invalid YouTube URL. Use a youtube.com/watch?v=... or youtu.be/... link.')
+      setUrlError('Invalid YouTube link. Use youtube.com/watch?v=..., youtu.be/..., or youtube.com/embed/... format.')
       return
     }
     onLoaded(videoId)

@@ -87,6 +87,25 @@ export function useWorkspace() {
     return file.id
   }, [load, activeWorkspaceId])
 
+  const addImageFile = useCallback(async (folderId: string | null, name: string, contentBase64: string, size: number) => {
+    const now = Date.now()
+    const file: WorkspaceFile = {
+      id: workspaceStore.generateId(),
+      kind: 'file',
+      workspaceId: activeWorkspaceId,
+      folderId,
+      name,
+      fileType: 'image',
+      content: contentBase64,
+      createdAt: now,
+      size,
+      updatedAt: now,
+    }
+    await workspaceStore.saveFile(file)
+    await load()
+    return file.id
+  }, [load, activeWorkspaceId])
+
   const addSpotifyTrackFile = useCallback(async (folderId: string | null, meta: SpotifyTrackMeta): Promise<string> => {
     const name = meta.name && meta.artists ? `${meta.name} – ${meta.artists}` : meta.name || 'Spotify track'
     const file: WorkspaceFile = {
@@ -160,6 +179,7 @@ export function useWorkspace() {
     addFile,
     addDocxFile,
     addPdfFile,
+    addImageFile,
     addSpotifyTrackFile,
     renameItem,
     deleteItem,

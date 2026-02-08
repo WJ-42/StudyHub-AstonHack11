@@ -1,11 +1,14 @@
 export type WorkspaceKind = 'folder' | 'file'
-export type FileType = 'text' | 'csv' | 'docx' | 'pdf' | 'spotify'
+export type FileType = 'text' | 'csv' | 'docx' | 'pdf' | 'spotify' | 'image'
 
 /** Max size in bytes for DOCX import (5 MB). */
 export const MAX_DOCX_SIZE = 5 * 1024 * 1024
 
 /** Max size in bytes for PDF import (5 MB). */
 export const MAX_PDF_SIZE = 5 * 1024 * 1024
+
+/** Max size in bytes for image import (5 MB). */
+export const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 export interface WorkspaceFolder {
   id: string

@@ -9,7 +9,7 @@ A frontend-only study web app with a Trello-like look and feel. All data is stor
 - **Document editor** — Edit text files with optional Markdown preview. Edit CSV as text.
 - **CSV Visualizer** — Select a CSV from workspace; view table and bar/line charts with column pickers. Settings persist per file.
 - **Study modes** — Pomodoro (work/short/long break), custom timer, and flashcards (decks, cards, study with flip/next/prev and shuffle).
-- **Media hub** — Paste Spotify or YouTube links; embed preview. Last link per provider is saved.
+- **Media hub** — Paste Spotify or YouTube links; embed preview. Optional YouTube API key enables auto-search for full playback from a Spotify track link (see `docs/SPOTIFY_SETUP.md`).
 - **Settings** — Theme (Light, Dark, Sepia), compact mode, sidebar collapse. All persist locally.
 - **Search** — Top bar search filters workspace items by name.
 - **Responsive** — Sidebar collapses to hamburger menu on small screens.

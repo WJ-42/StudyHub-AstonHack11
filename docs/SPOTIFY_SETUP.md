@@ -1,62 +1,19 @@
-# Spotify Connect Setup (OAuth + Web API)
+# Media: Spotify embed & YouTube full playback
 
-The app can connect to your Spotify account (frontend-only, no backend) to import **Liked Songs** and **playlists** into the Workspace as metadata. No client secret is used; authentication uses **Authorization Code with PKCE**.
+## Spotify embed (no setup)
 
-## 1. Create a Spotify Developer app
+Paste any **Spotify link** (track, album, or playlist from `open.spotify.com`) in the Media Player Hub. The app will show the Spotify embed preview. No API key or login is required.
 
-1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
-2. Log in with your Spotify account.
-3. Click **Create app**.
-4. Fill in:
-   - **App name**: e.g. "Study Hub" or your app name.
-   - **App description**: optional.
-   - **Redirect URI**: see below.
-   - **Which API/SDKs are you planning to use?**: check **Web API**.
-5. After creating, open the app and note the **Client ID**. You will **not** use the Client secret (frontend-only).
+## YouTube full playback (optional)
 
-## 2. Redirect URIs
+To **auto-search YouTube** from a Spotify track link (e.g. “Play full version (YouTube)” in the Spotify + full playback card), set a YouTube Data API v3 key:
 
-In the app settings, under **Redirect URIs**, add:
-
-- **Local development**: `http://localhost:5173/app/spotify-callback`  
-  (Adjust the port if your Vite dev server uses another, e.g. `5174`.)
-- **Production** (if you deploy): `https://your-domain.com/app/spotify-callback`
-
-Save the settings. Spotify only accepts redirects to URIs that are listed here.
-
-## 3. Environment variables (Vite)
-
-The app reads the Client ID and Redirect URI from environment variables so they are not committed to the repo.
-
-1. In the project root, create a file named `.env` (or copy from `.env.example`).
-2. Set:
+1. Get an API key at [Google Cloud Console → APIs & Credentials](https://console.cloud.google.com/apis/credentials).
+2. Enable **YouTube Data API v3** for your project.
+3. In the project root, create `.env` (or copy from `.env.example`) and set:
 
 ```env
-VITE_SPOTIFY_CLIENT_ID=your_client_id_here
-VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/app/spotify-callback
+VITE_YOUTUBE_API_KEY=your_youtube_api_key_here
 ```
 
-- **VITE_SPOTIFY_CLIENT_ID**: The Client ID from the Spotify Developer Dashboard.
-- **VITE_SPOTIFY_REDIRECT_URI**: Must match exactly one of the Redirect URIs configured in the Dashboard (including path and port).
-
-For production, use a `.env.production` or your host’s env config with the production redirect URI.
-
-Restart the dev server after changing `.env`.
-
-## 4. Scopes used (and why)
-
-The app requests the minimum scopes needed:
-
-| Scope | Purpose |
-|-------|--------|
-| `user-read-private` | Read profile (display name, image) to show connected state. |
-| `playlist-read-private` | List the user’s playlists and their tracks for import. |
-| `user-library-read` | Read Liked Songs for import. |
-
-No other scopes are requested. Playback (beyond any embed preview) is not implemented; that would require the Spotify Web Playback SDK and a Premium account.
-
-## 5. Security notes
-
-- **No client secret** is used or stored. PKCE is used so the app can authenticate without a secret.
-- Tokens are stored in the browser (e.g. `localStorage` / `sessionStorage`). Use **Disconnect** to clear them.
-- Do not commit `.env` or put your Client ID in public repos if you want to keep it private (the Client ID is visible in the built app).
+Restart the dev server after changing `.env`. If the key is missing, you can still paste a YouTube video URL manually in the “Find on YouTube” modal.

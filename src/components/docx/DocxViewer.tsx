@@ -20,7 +20,7 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 const ZOOM_LEVELS = [0.8, 1, 1.25] as const
 type ZoomLevel = (typeof ZOOM_LEVELS)[number]
 
-export function DocxViewer({ fileName, contentBase64, fileId: _fileId, size: _size }: DocxViewerProps) {
+export function DocxViewer({ contentBase64, fileId: _fileId, size: _size }: DocxViewerProps) {
   const bodyRef = useRef<HTMLDivElement>(null)
   const styleRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -74,19 +74,6 @@ export function DocxViewer({ fileName, contentBase64, fileId: _fileId, size: _si
     return () => ro.disconnect()
   }, [])
 
-  const handleDownload = () => {
-    const binary = atob(contentBase64)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = fileName
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
   const zoomIn = () => {
     const idx = ZOOM_LEVELS.indexOf(zoom)
     if (idx < ZOOM_LEVELS.length - 1) setZoom(ZOOM_LEVELS[idx + 1])
@@ -135,9 +122,6 @@ export function DocxViewer({ fileName, contentBase64, fileId: _fileId, size: _si
           onClick={() => setFitToWidth((f) => !f)}
         >
           Fit to width
-        </button>
-        <button type="button" className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600" onClick={handleDownload}>
-          Download original
         </button>
         <button type="button" className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600" onClick={() => window.print()}>
           Print

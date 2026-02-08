@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { SettingsProvider } from '@/contexts/SettingsContext'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { SearchProvider } from '@/contexts/SearchContext'
+import { MediaProvider } from '@/contexts/MediaContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import './index.css'
 import App from './App'
@@ -14,9 +15,11 @@ createRoot(document.getElementById('root')!).render(
       <SettingsProvider>
         <ToastProvider>
           <SearchProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
+            <MediaProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </MediaProvider>
           </SearchProvider>
         </ToastProvider>
       </SettingsProvider>

@@ -25,21 +25,33 @@ export function InputModal({
   const [value, setValue] = useState(defaultValue)
 
   useEffect(() => {
-    if (open) setValue(defaultValue)
+    if (open) {
+      console.log('🟡 InputModal opened with defaultValue:', defaultValue)
+      setValue(defaultValue)
+    }
   }, [open, defaultValue])
 
   if (!open) return null
 
+  console.log('🟡 InputModal rendering, open:', open, 'value:', value)
+
   const handleSubmit = () => {
     const trimmed = value.trim()
-    if (trimmed) onSubmit(trimmed)
+    if (trimmed) {
+      onSubmit(trimmed)
+    }
+    onCancel()
+  }
+
+  const handleClose = () => {
+    setValue(defaultValue)
     onCancel()
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
-      <div className="absolute inset-0 bg-black/50" aria-hidden onClick={onCancel} />
-      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
+      <div className="absolute inset-0 bg-black/50 transition-opacity duration-200" aria-hidden onClick={handleClose} />
+      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl transition-[transform,opacity] duration-200 ease-out dark:border-slate-700 dark:bg-slate-800">
         <h2 id="input-modal-title" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           {title}
         </h2>
@@ -52,14 +64,14 @@ export function InputModal({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSubmit()
-            if (e.key === 'Escape') onCancel()
+            if (e.key === 'Enter' && value.trim()) handleSubmit()
+            if (e.key === 'Escape') handleClose()
           }}
           className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           autoFocus
         />
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={handleClose}>
             {cancelLabel}
           </Button>
           <Button variant="primary" onClick={handleSubmit} disabled={!value.trim()}>

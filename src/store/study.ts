@@ -71,6 +71,79 @@ export async function setCustomTimerState(state: CustomTimerState): Promise<void
   await idbPut(STORE, state)
 }
 
+export interface FiftyTwoSeventeenState {
+  id: '5217'
+  phase: 'work' | 'break'
+  remainingSeconds: number
+  isRunning: boolean
+  workMinutes: number
+  breakMinutes: number
+}
+
+const FIFTY_TWO_SEVENTEEN_DEFAULTS: FiftyTwoSeventeenState = {
+  id: '5217',
+  phase: 'work',
+  remainingSeconds: 52 * 60,
+  isRunning: false,
+  workMinutes: 52,
+  breakMinutes: 17,
+}
+
+export async function get5217State(): Promise<FiftyTwoSeventeenState> {
+  const s = await idbGet<FiftyTwoSeventeenState>(STORE, '5217')
+  return s ?? FIFTY_TWO_SEVENTEEN_DEFAULTS
+}
+
+export async function set5217State(state: FiftyTwoSeventeenState): Promise<void> {
+  await idbPut(STORE, state)
+}
+
+export interface TimeboxBlock {
+  id: string
+  label: string
+  durationMinutes: number
+  order: number
+}
+
+export interface TimeboxState {
+  id: 'timebox'
+  blocks: TimeboxBlock[]
+  currentIndex: number
+  remainingSeconds: number
+  isRunning: boolean
+}
+
+export async function getTimeboxState(): Promise<TimeboxState> {
+  const s = await idbGet<TimeboxState>(STORE, 'timebox')
+  return s ?? { id: 'timebox', blocks: [], currentIndex: 0, remainingSeconds: 0, isRunning: false }
+}
+
+export async function setTimeboxState(state: TimeboxState): Promise<void> {
+  await idbPut(STORE, state)
+}
+
+export interface SpacedRepSession {
+  id: string
+  label: string
+  scheduledDate: string
+  completed: boolean
+  completedAt?: number
+}
+
+export interface SpacedRepState {
+  id: 'spacedrep'
+  sessions: SpacedRepSession[]
+}
+
+export async function getSpacedRepState(): Promise<SpacedRepState> {
+  const s = await idbGet<SpacedRepState>(STORE, 'spacedrep')
+  return s ?? { id: 'spacedrep', sessions: [] }
+}
+
+export async function setSpacedRepState(state: SpacedRepState): Promise<void> {
+  await idbPut(STORE, state)
+}
+
 export async function getDecks(): Promise<FlashcardDeck[]> {
   const all = await idbGetAll<FlashcardDeck | Flashcard>(STORE)
   return all.filter((x): x is FlashcardDeck => 'name' in x && 'createdAt' in x && !('deckId' in x))

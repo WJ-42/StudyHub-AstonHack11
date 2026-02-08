@@ -25,7 +25,7 @@ export function Toast({ id, message, variant = 'info', duration = 4000, onClose 
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-lg px-4 py-3 shadow-lg ${variantStyles[variant]}`}
+      className={`flex items-center justify-between gap-3 rounded-lg px-4 py-3 shadow-lg animate-toast-enter ${variantStyles[variant]}`}
       role="status"
     >
       <span className="text-sm font-medium">{message}</span>

@@ -1,44 +1,78 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useImperativeHandle, forwardRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+
+export interface DocumentEditorHandle {
+  saveNow: () => void
+  getContent: () => string
+  hasUnsavedChanges: () => boolean
+}
 
 interface DocumentEditorProps {
   content: string
   fileType: 'text' | 'csv'
   fileName: string
   onSave: (content: string) => void
+  onDirtyChange?: (dirty: boolean) => void
 }
 
 const SAVE_DEBOUNCE_MS = 500
 
-export function DocumentEditor({ content: initialContent, fileType, fileName, onSave }: DocumentEditorProps) {
+export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorProps>(function DocumentEditor(
+  { content: initialContent, fileType, fileName, onSave, onDirtyChange },
+  ref
+) {
   const [content, setContent] = useState(initialContent)
+  const [lastSavedContent, setLastSavedContent] = useState(initialContent)
   const [showPreview, setShowPreview] = useState(false)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setContent(initialContent)
+    setLastSavedContent(initialContent)
   }, [initialContent])
+
+  const hasDirty = content !== lastSavedContent
+  useEffect(() => {
+    onDirtyChange?.(hasDirty)
+  }, [hasDirty, onDirtyChange])
+
+  const saveNow = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+      saveTimeoutRef.current = null
+    }
+    setLastSavedContent(content)
+    onSave(content)
+  }, [content, onSave])
+
+  useImperativeHandle(ref, () => ({
+    saveNow,
+    getContent: () => content,
+    hasUnsavedChanges: () => content !== lastSavedContent,
+  }), [content, lastSavedContent, saveNow])
 
   const scheduleSave = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
+      setLastSavedContent(content)
       onSave(content)
       saveTimeoutRef.current = null
     }, SAVE_DEBOUNCE_MS)
   }, [content, onSave])
 
   useEffect(() => {
-    if (content === initialContent) return
+    if (content === lastSavedContent) return
     scheduleSave()
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     }
-  }, [content, initialContent, scheduleSave])
+  }, [content, lastSavedContent, scheduleSave])
 
   const handleBlur = () => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
       saveTimeoutRef.current = null
+      setLastSavedContent(content)
       onSave(content)
     }
   }
@@ -103,4 +137,4 @@ export function DocumentEditor({ content: initialContent, fileType, fileName, on
       </div>
     </div>
   )
-}
+})
