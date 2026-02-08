@@ -38,7 +38,9 @@ export function WorkspaceView() {
     const deletedIds = await deleteItem(id)
     if (deletedIds.length > 0) closeTabs(deletedIds)
   }
-  const { openTabIds, activeTabId, openTab, closeTab, closeTabs, setActiveTab } = useTabs()
+  const { openTabIds, activeTabId, openTab, closeTab, closeTabs, setActiveTab, reorderTabs } = useTabs()
+  const [draggedTabId, setDraggedTabId] = useState<string | null>(null)
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [importTargetFolderId, setImportTargetFolderId] = useState<string | null>(null)
   const [expandedFolders, setExpandedFoldersState] = useState<Record<string, boolean>>(() => getWorkspaceExpandedFolders())
@@ -205,27 +207,65 @@ export function WorkspaceView() {
 
       <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         {hasTabs && (
-          <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
-            {openTabIds.map((id) => {
+          <div
+            className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto"
+            onDragOver={(e) => e.preventDefault()}
+            onDragLeave={() => setDropTargetIndex(null)}
+          >
+            {openTabIds.map((id, index) => {
               const item = getItem(id)
+              const isDragging = draggedTabId === id
+              const isDropTarget = dropTargetIndex === index
               return (
                 <div
                   key={id}
-                  className={`flex items-center gap-1 border-r border-slate-200 px-3 py-2 text-sm dark:border-slate-700 ${
-                    id === activeTabId ? 'bg-slate-100 dark:bg-slate-700' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                  }`}
+                  draggable
+                  onDragStart={(e) => {
+                    setDraggedTabId(id)
+                    e.dataTransfer.setData('text/plain', id)
+                    e.dataTransfer.effectAllowed = 'move'
+                  }}
+                  onDragEnd={() => {
+                    setDraggedTabId(null)
+                    setDropTargetIndex(null)
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = 'move'
+                    setDropTargetIndex(index)
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    setDraggedTabId(null)
+                    setDropTargetIndex(null)
+                    const draggedId = e.dataTransfer.getData('text/plain')
+                    if (!draggedId || draggedId === id) return
+                    const fromIndex = openTabIds.indexOf(draggedId)
+                    const toIndex = index
+                    if (fromIndex === toIndex) return
+                    const newOrder = [...openTabIds]
+                    newOrder.splice(fromIndex, 1)
+                    newOrder.splice(toIndex, 0, draggedId)
+                    reorderTabs(newOrder)
+                  }}
+                  onClick={() => setActiveTab(id)}
+                  onDoubleClick={() => closeTab(id)}
+                  className={[
+                    'flex min-w-0 max-w-[180px] cursor-grab active:cursor-grabbing items-center gap-1 border-r border-slate-200 dark:border-slate-700 px-2 py-2 text-sm transition-colors duration-150',
+                    id === activeTabId ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50',
+                    isDragging && 'opacity-50',
+                    isDropTarget && 'animate-tab-drop-pulse ring-2 ring-green-500 ring-inset dark:ring-green-400',
+                  ].filter(Boolean).join(' ')}
+                  title={item?.name ?? id}
                 >
+                  <span className="min-w-0 truncate">{item?.name ?? id}</span>
                   <button
                     type="button"
-                    className="min-w-0 truncate max-w-[140px]"
-                    onClick={() => setActiveTab(id)}
-                  >
-                    {item?.name ?? id}
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded p-0.5 hover:bg-slate-300 dark:hover:bg-slate-600"
-                    onClick={() => closeTab(id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      closeTab(id)
+                    }}
+                    className="shrink-0 rounded p-0.5 text-inherit opacity-70 hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-600"
                     aria-label="Close tab"
                   >
                     ×

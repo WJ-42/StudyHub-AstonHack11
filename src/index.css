@@ -210,6 +210,64 @@ html[data-font="nunito"] {
   border: none !important;
 }
 
+/* Tab close buttons: no black box, just the × */
+.theme-dark button[aria-label="Close tab"],
+.dark button[aria-label="Close tab"] {
+  background-color: transparent !important;
+  border: none !important;
+  color: inherit;
+}
+.theme-dark button[aria-label="Close tab"]:hover,
+.dark button[aria-label="Close tab"]:hover {
+  background-color: #0a0a0a !important;
+}
+
+/* User menu button (avatar + name): no black box, transparent by default */
+.theme-dark button[aria-label="User menu"],
+.dark button[aria-label="User menu"] {
+  background-color: transparent !important;
+  border: none !important;
+  color: inherit;
+}
+.theme-dark button[aria-label="User menu"]:hover,
+.dark button[aria-label="User menu"]:hover {
+  background-color: #0a0a0a !important;
+}
+
+/* Workspace tree rows (files & folders): no black box, transparent by default */
+.theme-dark [data-workspace-row],
+.dark [data-workspace-row] {
+  background-color: transparent !important;
+  border: none !important;
+}
+.theme-dark [data-workspace-row]:hover,
+.dark [data-workspace-row]:hover {
+  background-color: #0a0a0a !important;
+}
+.theme-dark [data-workspace-row][data-selected="true"],
+.dark [data-workspace-row][data-selected="true"] {
+  background-color: rgba(30, 58, 138, 0.35) !important;
+}
+.theme-dark [data-workspace-row][data-drop-target="true"],
+.dark [data-workspace-row][data-drop-target="true"] {
+  background-color: rgba(30, 58, 138, 0.25) !important;
+}
+/* Action buttons inside workspace rows (expand, rename, delete): no black box */
+.theme-dark [data-workspace-row] button[data-workspace-row-action],
+.dark [data-workspace-row] button[data-workspace-row-action] {
+  background-color: transparent !important;
+  border: none !important;
+  color: inherit;
+}
+.theme-dark [data-workspace-row] button[data-workspace-row-action]:hover,
+.dark [data-workspace-row] button[data-workspace-row-action]:hover {
+  background-color: #0a0a0a !important;
+}
+.theme-dark [data-workspace-row] button[data-workspace-row-action][class*="hover:bg-red"]:hover,
+.dark [data-workspace-row] button[data-workspace-row-action][class*="hover:bg-red"]:hover {
+  background-color: rgba(127, 29, 29, 0.5) !important;
+}
+
 .theme-dark button[class*="bg-slate-"]:hover,
 .theme-dark button[class*="bg-white"]:hover,
 .dark button[class*="bg-slate-"]:hover,

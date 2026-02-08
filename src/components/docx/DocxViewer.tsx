@@ -17,8 +17,10 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer
 }
 
-const ZOOM_LEVELS = [0.8, 1, 1.25] as const
-type ZoomLevel = (typeof ZOOM_LEVELS)[number]
+const ZOOM_MIN = 25
+const ZOOM_MAX = 400
+const ZOOM_STEP = 50
+const PRESET_ZOOMS = [80, 100, 125] as const
 
 export function DocxViewer({ contentBase64, fileId: _fileId, size: _size }: DocxViewerProps) {
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -26,14 +28,15 @@ export function DocxViewer({ contentBase64, fileId: _fileId, size: _size }: Docx
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [zoom, setZoom] = useState<ZoomLevel>(1)
+  const [zoom, setZoom] = useState(100) // percentage
+  const [customZoomInput, setCustomZoomInput] = useState('')
   const [fitToWidth, setFitToWidth] = useState(false)
   const [contentWidth, setContentWidth] = useState<number>(0)
   const [containerWidth, setContainerWidth] = useState<number>(0)
 
   const effectiveZoom = fitToWidth && containerWidth > 0 && contentWidth > 0
     ? containerWidth / contentWidth
-    : zoom
+    : zoom / 100
 
   const renderDoc = useCallback(async () => {
     if (!bodyRef.current || !styleRef.current || !contentBase64) return
@@ -75,15 +78,30 @@ export function DocxViewer({ contentBase64, fileId: _fileId, size: _size }: Docx
   }, [])
 
   const zoomIn = () => {
-    const idx = ZOOM_LEVELS.indexOf(zoom)
-    if (idx < ZOOM_LEVELS.length - 1) setZoom(ZOOM_LEVELS[idx + 1])
+    setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))
     setFitToWidth(false)
   }
   const zoomOut = () => {
-    const idx = ZOOM_LEVELS.indexOf(zoom)
-    if (idx > 0) setZoom(ZOOM_LEVELS[idx - 1])
+    setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP))
     setFitToWidth(false)
   }
+  const applyCustomZoom = () => {
+    const n = Number.parseInt(customZoomInput, 10)
+    if (!Number.isNaN(n)) setZoom(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, n)))
+    setCustomZoomInput('')
+  }
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (!e.ctrlKey) return
+    e.preventDefault()
+    setZoom((z) => (e.deltaY < 0 ? Math.min(ZOOM_MAX, z + ZOOM_STEP) : Math.max(ZOOM_MIN, z - ZOOM_STEP)))
+    setFitToWidth(false)
+  }, [])
+  useEffect(() => {
+    const el = wrapperRef.current
+    if (!el) return
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [handleWheel])
 
   if (error) {
     return (
@@ -106,16 +124,29 @@ export function DocxViewer({ contentBase64, fileId: _fileId, size: _size }: Docx
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2 dark:border-slate-700">
         <button type="button" className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600" onClick={zoomOut} aria-label="Zoom out">−</button>
         <button type="button" className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600" onClick={zoomIn} aria-label="Zoom in">+</button>
-        {ZOOM_LEVELS.map((z) => (
+        {PRESET_ZOOMS.map((z) => (
           <button
             key={z}
             type="button"
             className={`rounded px-2 py-1 text-sm ${zoom === z ? 'bg-blue-100 dark:bg-blue-900/50' : 'border border-slate-300 dark:border-slate-600'}`}
             onClick={() => { setZoom(z); setFitToWidth(false) }}
           >
-            {Math.round(z * 100)}%
+            {z}%
           </button>
         ))}
+        <span className="text-sm text-slate-500 dark:text-slate-400">Custom:</span>
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder={`${zoom}%`}
+          value={customZoomInput}
+          onChange={(e) => setCustomZoomInput(e.target.value.replace(/\D/g, ''))}
+          onBlur={applyCustomZoom}
+          onKeyDown={(e) => { if (e.key === 'Enter') applyCustomZoom() }}
+          className="w-14 rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          aria-label="Custom zoom percentage"
+        />
+        <span className="text-sm text-slate-500 dark:text-slate-400">%</span>
         <button
           type="button"
           className={`rounded px-2 py-1 text-sm ${fitToWidth ? 'bg-blue-100 dark:bg-blue-900/50' : 'border border-slate-300 dark:border-slate-600'}`}

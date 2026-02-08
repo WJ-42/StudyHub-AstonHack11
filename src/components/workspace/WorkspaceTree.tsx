@@ -114,6 +114,9 @@ function TreeRow({
 
   const rowContent = (
     <div
+      data-workspace-row
+      data-selected={isSelected ? 'true' : undefined}
+      data-drop-target={isDropTarget ? 'true' : undefined}
       className={`flex items-center gap-1 rounded px-2 py-1.5 text-sm ${isDropTarget ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''} ${isSelected ? 'bg-blue-100 dark:bg-blue-900/40' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}
       style={{ paddingLeft: `${depth * 12 + 8}px` }}
       onDragOver={isF ? onDragOver : undefined}
@@ -140,6 +143,7 @@ function TreeRow({
               className="flex shrink-0 items-center justify-center rounded p-0.5 hover:bg-slate-300 dark:hover:bg-slate-600"
               onClick={(e) => { e.stopPropagation(); onToggleExpand(item.id) }}
               aria-label={isExpanded ? 'Collapse' : 'Expand'}
+              data-workspace-row-action
             >
               <span
                 className="inline-block transition-transform"
@@ -164,6 +168,7 @@ function TreeRow({
               className="rounded p-0.5 hover:bg-slate-300 dark:hover:bg-slate-600"
               onClick={(e) => { e.stopPropagation(); setEditing(true) }}
               aria-label="Rename"
+              data-workspace-row-action
             >
               ✏️
             </button>
@@ -172,6 +177,7 @@ function TreeRow({
               className="rounded p-0.5 hover:bg-red-200 dark:hover:bg-red-900/50"
               onClick={(e) => { e.stopPropagation(); handleDeleteClick() }}
               aria-label="Delete"
+              data-workspace-row-action
             >
               🗑️
             </button>
@@ -338,6 +344,8 @@ export function WorkspaceTree({
       </div>
       <div className="min-h-0 flex-1 overflow-auto p-1">
         <div
+          data-workspace-row
+          data-drop-target={rootDropHighlight ? 'true' : undefined}
           className={`mb-2 rounded px-2 py-1.5 text-sm ${rootDropHighlight ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''}`}
           onDragOver={handleRootDragOver}
           onDragLeave={handleRootDragLeave}
@@ -347,6 +355,7 @@ export function WorkspaceTree({
             type="button"
             className="w-full rounded px-2 py-1.5 text-left hover:bg-slate-200 dark:hover:bg-slate-700"
             onClick={() => onSelectFolder(null)}
+            data-workspace-row-action
           >
             Workspace
           </button>

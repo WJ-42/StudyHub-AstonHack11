@@ -55,6 +55,10 @@ export function useTabs() {
     setActiveTabId(id)
   }, [])
 
+  const reorderTabs = useCallback((newOrder: string[]) => {
+    setOpenTabIds(newOrder)
+  }, [])
+
   return {
     openTabIds,
     activeTabId,
@@ -62,5 +66,6 @@ export function useTabs() {
     closeTab,
     closeTabs,
     setActiveTab: setActive,
+    reorderTabs,
   }
 }
