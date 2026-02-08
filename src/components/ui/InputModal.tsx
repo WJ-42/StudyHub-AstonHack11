@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 
 interface InputModalProps {
@@ -31,10 +32,6 @@ export function InputModal({
     }
   }, [open, defaultValue])
 
-  if (!open) return null
-
-  console.log('🟡 InputModal rendering, open:', open, 'value:', value)
-
   const handleSubmit = () => {
     const trimmed = value.trim()
     if (trimmed) {
@@ -48,10 +45,12 @@ export function InputModal({
     onCancel()
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
+  if (!open) return null
+
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 transition-opacity duration-200" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
       <div className="absolute inset-0 bg-black/50 transition-opacity duration-200" aria-hidden onClick={handleClose} />
-      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl animate-fade-in-up dark:border-slate-700 dark:bg-slate-800">
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl animate-fade-in-up dark:border-slate-700 dark:bg-slate-800">
         <h2 id="input-modal-title" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           {title}
         </h2>
@@ -79,6 +78,7 @@ export function InputModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

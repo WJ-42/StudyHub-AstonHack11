@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/Button'
 import type { YouTubeSearchItem } from '@/services/youtubeSearch'
 
@@ -72,8 +73,6 @@ export function FindOnYouTubeModal({
     if (isOpen) setSearchQuery(initialSearchQuery)
   }, [isOpen, initialSearchQuery])
 
-  if (!isOpen) return null
-
   const hasResults = !!(searchResults && searchResults.length > 0)
 
   const handleSelect = (videoId: string) => {
@@ -103,10 +102,10 @@ export function FindOnYouTubeModal({
     onClose()
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="find-youtube-title">
+  const modalContent = (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="find-youtube-title">
       <div className="absolute inset-0 bg-black/50" aria-hidden onClick={handleClose} />
-      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
         <h2 id="find-youtube-title" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Find on YouTube
         </h2>
@@ -216,4 +215,7 @@ export function FindOnYouTubeModal({
       </div>
     </div>
   )
+
+  if (!isOpen) return null
+  return createPortal(modalContent, document.body)
 }

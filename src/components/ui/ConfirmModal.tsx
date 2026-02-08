@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 
 export type ConfirmVariant = 'danger' | 'primary'
@@ -26,10 +27,10 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   if (!open) return null
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 transition-opacity duration-200" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
       <div className="absolute inset-0 bg-black/50 transition-opacity duration-200" aria-hidden onClick={onCancel} />
-      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl animate-fade-in-up dark:border-slate-700 dark:bg-slate-800">
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl animate-fade-in-up dark:border-slate-700 dark:bg-slate-800">
         <h2 id="confirm-modal-title" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           {title}
         </h2>
@@ -43,6 +44,7 @@ export function ConfirmModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

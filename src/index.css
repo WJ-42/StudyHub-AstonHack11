@@ -713,8 +713,13 @@ html.theme-light [data-toast] {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(217, 118, 52, 0.15);
 }
 .theme-octopus [data-toast][data-toast-variant="success"] {
-  border-color: #3EF8A8;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 12px rgba(62, 248, 168, 0.25);
+  border-color: #d97634;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(217, 118, 52, 0.15);
+}
+.theme-octopus [data-toast] button {
+  background: transparent !important;
+  border: none;
+  box-shadow: none;
 }
 .theme-octopus [data-toast] button:hover {
   background-color: rgba(217, 118, 52, 0.3) !important;

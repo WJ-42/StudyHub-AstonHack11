@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/Button'
 import { getUserName, setUserName } from '@/store/session'
 import { getAvatar, setAvatar } from '@/store/storage'
@@ -45,10 +46,10 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
   if (!open) return null
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
       <div className="absolute inset-0 bg-black/50" aria-hidden onClick={() => onClose()} />
-      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
         <h2 id="profile-modal-title" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Profile
         </h2>
@@ -105,6 +106,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

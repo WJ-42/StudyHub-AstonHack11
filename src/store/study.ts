@@ -16,7 +16,10 @@ export interface PomodoroState {
 
 export interface CustomTimerState {
   id: 'customTimer'
-  durationMinutes: number
+  /** Total duration in seconds (used for set/reset). Kept for backward compat: durationMinutes is migrated to durationSeconds on load. */
+  durationSeconds: number
+  /** @deprecated Use durationSeconds. Migrated on load. */
+  durationMinutes?: number
   remainingSeconds: number
   isRunning: boolean
 }
@@ -48,7 +51,7 @@ const POMODORO_DEFAULTS: PomodoroState = {
 
 const CUSTOM_TIMER_DEFAULTS: CustomTimerState = {
   id: 'customTimer',
-  durationMinutes: 25,
+  durationSeconds: 25 * 60,
   remainingSeconds: 25 * 60,
   isRunning: false,
 }
@@ -63,8 +66,10 @@ export async function setPomodoroState(state: PomodoroState): Promise<void> {
 }
 
 export async function getCustomTimerState(): Promise<CustomTimerState> {
-  const s = await idbGet<CustomTimerState>(STORE, 'customTimer')
-  return s ?? CUSTOM_TIMER_DEFAULTS
+  const s = await idbGet<CustomTimerState & { durationMinutes?: number }>(STORE, 'customTimer')
+  if (!s) return CUSTOM_TIMER_DEFAULTS
+  const durationSeconds = s.durationSeconds ?? (s.durationMinutes ?? 25) * 60
+  return { ...CUSTOM_TIMER_DEFAULTS, ...s, durationSeconds }
 }
 
 export async function setCustomTimerState(state: CustomTimerState): Promise<void> {

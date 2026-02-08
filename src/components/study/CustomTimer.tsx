@@ -10,12 +10,15 @@ function formatTime(seconds: number): string {
 
 export function CustomTimer() {
   const [state, setState] = useState<CustomTimerState | null>(null)
-  const [durationInput, setDurationInput] = useState('25')
+  const [minutesInput, setMinutesInput] = useState('0')
+  const [secondsInput, setSecondsInput] = useState('25')
 
   const load = useCallback(async () => {
     const s = await getCustomTimerState()
     setState(s)
-    setDurationInput(String(s.durationMinutes))
+    const total = s.durationSeconds
+    setMinutesInput(String(Math.floor(total / 60)))
+    setSecondsInput(String(total % 60))
   }, [])
 
   useEffect(() => {
@@ -32,11 +35,14 @@ export function CustomTimer() {
   if (!state) return <p className="text-slate-500">Loading...</p>
 
   const setDuration = async () => {
-    const min = Math.max(1, Math.min(120, parseInt(durationInput, 10) || 25))
-    const next = { ...state, durationMinutes: min, remainingSeconds: min * 60, isRunning: false }
+    const min = Math.max(0, Math.min(120, parseInt(minutesInput, 10) || 0))
+    const sec = Math.max(0, Math.min(59, parseInt(secondsInput, 10) || 0))
+    const totalSeconds = Math.max(1, min * 60 + sec)
+    const next = { ...state, durationSeconds: totalSeconds, remainingSeconds: totalSeconds, isRunning: false }
     await setCustomTimerState(next)
     setState(next)
-    setDurationInput(String(min))
+    setMinutesInput(String(Math.floor(totalSeconds / 60)))
+    setSecondsInput(String(totalSeconds % 60))
   }
 
   const start = async () => {
@@ -51,7 +57,7 @@ export function CustomTimer() {
     setState(next)
   }
   const reset = async () => {
-    const next = { ...state, remainingSeconds: state.durationMinutes * 60, isRunning: false }
+    const next = { ...state, remainingSeconds: state.durationSeconds, isRunning: false }
     await setCustomTimerState(next)
     setState(next)
   }
@@ -59,18 +65,32 @@ export function CustomTimer() {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Custom timer</h3>
-      <div className="mt-4 flex items-center gap-2">
-        <label htmlFor="custom-duration" className="text-sm text-slate-600 dark:text-slate-400">Duration (minutes)</label>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <label htmlFor="custom-minutes" className="text-sm text-slate-600 dark:text-slate-400">Duration</label>
         <input
-          id="custom-duration"
+          id="custom-minutes"
           type="number"
-          min={1}
+          min={0}
           max={120}
-          value={durationInput}
-          onChange={(e) => setDurationInput(e.target.value)}
+          value={minutesInput}
+          onChange={(e) => setMinutesInput(e.target.value)}
           onBlur={setDuration}
-          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          className="w-16 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          aria-label="Minutes"
         />
+        <span className="text-sm text-slate-600 dark:text-slate-400">min</span>
+        <input
+          id="custom-seconds"
+          type="number"
+          min={0}
+          max={59}
+          value={secondsInput}
+          onChange={(e) => setSecondsInput(e.target.value)}
+          onBlur={setDuration}
+          className="w-16 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          aria-label="Seconds"
+        />
+        <span className="text-sm text-slate-600 dark:text-slate-400">sec</span>
         <button type="button" className="rounded bg-slate-200 px-2 py-1 text-sm dark:bg-slate-700" onClick={setDuration}>Set</button>
       </div>
       <p className="mt-4 text-4xl font-mono text-slate-800 dark:text-slate-100">{formatTime(state.remainingSeconds)}</p>

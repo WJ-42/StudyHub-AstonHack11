@@ -73,38 +73,6 @@ export function OctopusThemeEffects() {
     }
   }, [addCursorBubble])
 
-  /* Apply tentacle cursor via JS so the image URL resolves (public/cursors/tentacle.png) */
-  useEffect(() => {
-    if (theme !== 'octopus') {
-      const el = document.getElementById('octopus-cursor-style')
-      if (el) el.remove()
-      return
-    }
-    const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const url = `${origin}/cursors/tentacle.png`
-    let el = document.getElementById('octopus-cursor-style') as HTMLStyleElement | null
-    if (!el) {
-      el = document.createElement('style')
-      el.id = 'octopus-cursor-style'
-      document.head.appendChild(el)
-    }
-    el.textContent = `
-      .theme-octopus, .theme-octopus * { cursor: url("${url}") 2 2, auto !important; }
-      .theme-octopus a, .theme-octopus button, .theme-octopus [role="button"],
-      .theme-octopus [type="submit"], .theme-octopus input[type="image"],
-      .theme-octopus [tabindex]:not([tabindex="-1"]) { cursor: url("${url}") 2 2, pointer !important; }
-      html.theme-octopus.reduce-motion,
-      html.theme-octopus.reduce-motion * { cursor: auto !important; }
-      html.theme-octopus.reduce-motion a,
-      html.theme-octopus.reduce-motion button,
-      html.theme-octopus.reduce-motion [role="button"] { cursor: pointer !important; }
-    `
-    return () => {
-      const s = document.getElementById('octopus-cursor-style')
-      if (s) s.remove()
-    }
-  }, [theme])
-
   if (theme !== 'octopus') return null
 
   const showBubbles = !reduceMotion
