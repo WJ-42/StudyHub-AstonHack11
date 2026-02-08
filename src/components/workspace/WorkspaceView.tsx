@@ -44,7 +44,7 @@ export function WorkspaceView() {
   const [expandedFolders, setExpandedFoldersState] = useState<Record<string, boolean>>(() => getWorkspaceExpandedFolders())
   const [moveMessage, setMoveMessage] = useState<string | null>(null)
   const [isDragging, setDragging] = useState(false)
-  const [newFolderParentId, setNewFolderParentId] = useState<string | null>(null)
+  const [newFolderParentId, setNewFolderParentId] = useState<string | null | undefined>(undefined)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -65,12 +65,14 @@ export function WorkspaceView() {
   }, [moveMessage])
 
   const handleCreateFolder = (parentId: string | null) => {
+    console.log('🟢 handleCreateFolder called with parentId:', parentId)
     setNewFolderParentId(parentId)
   }
   const handleNewFolderSubmit = useCallback(
     (name: string) => {
-      const parentId = newFolderParentId
-      setNewFolderParentId(null)
+      console.log('🟢 handleNewFolderSubmit called with name:', name, 'parentId:', newFolderParentId)
+      const parentId = newFolderParentId === undefined ? null : newFolderParentId
+      setNewFolderParentId(undefined)
       createFolder(parentId, name.trim() || 'New folder')
     },
     [newFolderParentId, createFolder]
@@ -291,13 +293,13 @@ export function WorkspaceView() {
       </div>
 
       <InputModal
-        open={newFolderParentId !== null}
+        open={newFolderParentId !== undefined}
         title="New folder"
         label="Folder name"
         defaultValue="New folder"
         submitLabel="Create"
         onSubmit={handleNewFolderSubmit}
-        onCancel={() => setNewFolderParentId(null)}
+        onCancel={() => setNewFolderParentId(undefined)}
       />
     </div>
   )

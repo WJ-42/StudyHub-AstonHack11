@@ -326,7 +326,10 @@ export function WorkspaceTree({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-wrap gap-2 p-2">
-        <Button variant="secondary" size="md" onClick={() => onCreateFolder(selectedFolderId)}>
+        <Button variant="secondary" size="md" onClick={() => {
+          console.log('🟠 New folder button clicked, selectedFolderId:', selectedFolderId)
+          onCreateFolder(selectedFolderId)
+        }}>
           New folder
         </Button>
         <Button variant="secondary" size="md" onClick={() => onImportFiles(selectedFolderId)}>

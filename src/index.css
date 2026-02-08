@@ -39,106 +39,150 @@ body {
   --color-border: #475569;
 }
 
-/* Cyberpunk theme */
+/* Cyberpunk theme - Neon magenta, electric cyan, acid yellow */
 .theme-cyberpunk {
-  --color-card-bg: #1a0933;
-  --color-input-bg: #0d0420;
-  --color-text-primary: #ff00ff;
-  --color-text-muted: #00ffff;
-  --color-border: #ff00ff;
+  --color-card-bg: #131722;
+  --color-input-bg: #0B0D13;
+  --color-text-primary: #F2F6FF;
+  --color-text-muted: #AEB6C9;
+  --color-border: #00F0FF;
   color-scheme: dark;
 }
 
 .theme-cyberpunk body {
-  background-color: #0d0420;
+  background-color: #05060A;
   background-image: 
-    linear-gradient(rgba(255, 0, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 0, 255, 0.05) 1px, transparent 1px);
-  background-size: 20px 20px;
+    linear-gradient(rgba(255, 0, 212, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 20% 20%, rgba(245, 255, 61, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 0, 212, 0.05) 0%, transparent 50%);
+  background-size: 30px 30px, 30px 30px, 100% 100%, 100% 100%;
 }
 
 .theme-cyberpunk .bg-slate-50,
 .theme-cyberpunk .bg-slate-100 {
-  background-color: #1a0933 !important;
+  background-color: #131722 !important;
 }
 
 .theme-cyberpunk .bg-white {
-  background-color: #2d1456 !important;
+  background-color: #1B1F2E !important;
 }
 
 .theme-cyberpunk .bg-slate-800,
 .theme-cyberpunk .bg-slate-900 {
-  background-color: #0d0420 !important;
+  background-color: #0B0D13 !important;
 }
 
 .theme-cyberpunk .text-slate-800,
 .theme-cyberpunk .text-slate-700 {
-  color: #ff00ff !important;
+  color: #F2F6FF !important;
 }
 
 .theme-cyberpunk .text-slate-600,
 .theme-cyberpunk .text-slate-500 {
-  color: #00ffff !important;
+  color: #AEB6C9 !important;
 }
 
 .theme-cyberpunk .border-slate-200,
 .theme-cyberpunk .border-slate-300,
 .theme-cyberpunk .border-slate-700 {
-  border-color: #ff00ff !important;
+  border-color: #00F0FF !important;
 }
 
-/* Octopus theme (deep ocean) */
+.theme-cyberpunk .bg-blue-600 {
+  background-color: #FF00D4 !important;
+  color: #05060A !important;
+  box-shadow: 0 0 20px rgba(255, 0, 212, 0.3);
+}
+
+.theme-cyberpunk .hover\:bg-blue-700:hover {
+  background-color: #E600B8 !important;
+  box-shadow: 0 0 25px rgba(255, 0, 212, 0.5);
+}
+
+.theme-cyberpunk button,
+.theme-cyberpunk input:focus {
+  transition: box-shadow 0.3s ease;
+}
+
+.theme-cyberpunk input:focus {
+  border-color: #F5FF3D !important;
+  box-shadow: 0 0 15px rgba(245, 255, 61, 0.3);
+}
+
+/* Octopus theme - Deep-sea purples + bioluminescent greens */
 .theme-octopus {
-  --color-card-bg: #0a192f;
-  --color-input-bg: #020c1b;
-  --color-text-primary: #8892b0;
-  --color-text-muted: #495670;
-  --color-border: #233554;
+  --color-card-bg: #1E0533;
+  --color-input-bg: #140024;
+  --color-text-primary: #EDE6FF;
+  --color-text-muted: #BCAEDB;
+  --color-border: #8A2BE2;
   color-scheme: dark;
 }
 
 .theme-octopus body {
-  background-color: #020c1b;
-  background-image: radial-gradient(circle at 20% 50%, rgba(100, 255, 218, 0.05) 0%, transparent 50%);
+  background-color: #0A0014;
+  background-image: 
+    radial-gradient(circle at 30% 40%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(62, 248, 168, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(192, 132, 245, 0.08) 0%, transparent 40%);
 }
 
 .theme-octopus .bg-slate-50,
 .theme-octopus .bg-slate-100 {
-  background-color: #0a192f !important;
+  background-color: #1E0533 !important;
 }
 
 .theme-octopus .bg-white {
-  background-color: #112240 !important;
+  background-color: #2A0B47 !important;
 }
 
 .theme-octopus .bg-slate-800,
 .theme-octopus .bg-slate-900 {
-  background-color: #020c1b !important;
+  background-color: #140024 !important;
 }
 
 .theme-octopus .text-slate-800,
 .theme-octopus .text-slate-700 {
-  color: #ccd6f6 !important;
+  color: #EDE6FF !important;
 }
 
 .theme-octopus .text-slate-600,
 .theme-octopus .text-slate-500 {
-  color: #8892b0 !important;
+  color: #BCAEDB !important;
 }
 
 .theme-octopus .border-slate-200,
 .theme-octopus .border-slate-300,
 .theme-octopus .border-slate-700 {
-  border-color: #233554 !important;
+  border-color: #8A2BE2 !important;
 }
 
 .theme-octopus .bg-blue-600 {
-  background-color: #64ffda !important;
-  color: #0a192f !important;
+  background-color: #8A2BE2 !important;
+  color: #EDE6FF !important;
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
 }
 
 .theme-octopus .hover\:bg-blue-700:hover {
-  background-color: #52cca8 !important;
+  background-color: #9D4EED !important;
+  box-shadow: 0 0 25px rgba(138, 43, 226, 0.6);
+}
+
+.theme-octopus button:hover,
+.theme-octopus a:hover {
+  color: #3EF8A8;
+  transition: color 0.3s ease;
+}
+
+.theme-octopus input:focus {
+  border-color: #3EF8A8 !important;
+  box-shadow: 0 0 15px rgba(62, 248, 168, 0.3);
+}
+
+.theme-octopus .border-slate-200:focus,
+.theme-octopus .border-slate-300:focus {
+  border-color: #00FFC6 !important;
 }
 
 /* Flashcard background gradient */

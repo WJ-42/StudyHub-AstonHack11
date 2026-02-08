@@ -20,6 +20,7 @@ export function useWorkspace() {
   }, [load])
 
   const createFolder = useCallback(async (parentId: string | null, name: string) => {
+    console.log('🔵 createFolder called with parentId:', parentId, 'name:', name, 'workspaceId:', activeWorkspaceId)
     const folder: WorkspaceFolder = {
       id: workspaceStore.generateId(),
       kind: 'folder',
@@ -28,8 +29,11 @@ export function useWorkspace() {
       parentId,
       createdAt: Date.now(),
     }
+    console.log('🔵 Folder object created:', folder)
     await workspaceStore.saveFolder(folder)
+    console.log('🔵 Folder saved to store')
     await load()
+    console.log('🔵 Items reloaded')
     return folder.id
   }, [load, activeWorkspaceId])
 
