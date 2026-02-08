@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { getMediaLinks, setMediaLinks } from '@/store/storage'
 import { SpotifyDualModeCard } from './SpotifyDualModeCard'
 import { useMedia } from '@/contexts/MediaContext'
-import { notifyClearRequested } from '@/utils/playerSync'
 
 type Provider = 'spotify' | 'youtube'
 
@@ -104,7 +103,7 @@ function MediaBlock({
   provider: Provider
   storageKey: keyof ReturnType<typeof getMediaLinks>
 }) {
-  const { playerOwner, setYoutubeVideoId } = useMedia()
+  const { isPopupOpen, setYoutubeVideoId } = useMedia()
   const links = getMediaLinks()
   const saved = links[storageKey] ?? ''
   const [input, setInput] = useState(saved)
@@ -161,8 +160,6 @@ function MediaBlock({
     if (provider === 'youtube') {
       setYoutubeVideoId(null)
     }
-    // Notify pop-out to close if it's open
-    notifyClearRequested()
   }
 
   /**
@@ -320,10 +317,10 @@ function MediaBlock({
             className={`mt-4 w-full overflow-hidden rounded-lg bg-slate-900 ${provider === 'youtube' ? 'aspect-video' : ''}`}
             style={provider !== 'youtube' ? { height: EMBED_HEIGHT[provider] } : undefined}
           >
-            {playerOwner === 'popout' ? (
+            {isPopupOpen ? (
               <div className="flex h-full items-center justify-center">
                 <p className="text-sm text-slate-400">
-                  Playing in pop-out window. Close pop-out to resume here.
+                  Playing in pop-up. Close pop-up to resume here.
                 </p>
               </div>
             ) : (

@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMedia } from '@/contexts/MediaContext'
-import { notifyPopoutOpened } from '@/utils/playerSync'
-
-function getPopoutUrl(embedUrl: string, provider: string): string {
-  const base = typeof window !== 'undefined' ? window.location.origin : ''
-  const title = provider === 'youtube' ? 'YouTube' : 'Spotify'
-  return `${base}/popout-player.html?url=${encodeURIComponent(embedUrl)}&title=${encodeURIComponent(title)}`
-}
+import { MediaPopup } from './MediaPopup'
 
 function getSpotifyEmbedUrl(url: string): string | null {
   if (!url.trim()) return null
@@ -23,7 +17,7 @@ function getSpotifyEmbedUrl(url: string): string | null {
 }
 
 export function PersistentMediaPlayer() {
-  const { spotifyUrl, youtubeVideoId, trackMetadata, playerOwner } = useMedia()
+  const { spotifyUrl, youtubeVideoId, trackMetadata, isPopupOpen, setIsPopupOpen } = useMedia()
   const [isExpanded, setIsExpanded] = useState(true)
 
   const hasYouTube = !!youtubeVideoId
@@ -41,27 +35,28 @@ export function PersistentMediaPlayer() {
   const title = hasYouTube ? 'YouTube' : 'Spotify'
 
   const handlePopOut = () => {
-    // Adjust window size based on provider
-    const w = provider === 'youtube' ? 640 : 420
-    const h = provider === 'youtube' ? 390 : 320
-    const left = Math.max(0, (window.screen.width - w) / 2)
-    const top = Math.max(0, (window.screen.height - h) / 2)
-    window.open(
-      getPopoutUrl(embedUrl, provider),
-      'popout-player',
-      `width=${w},height=${h},left=${left},top=${top},scrollbars=no`
-    )
-    // Notify that pop-out has been opened
-    notifyPopoutOpened()
+    setIsPopupOpen(true)
+  }
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false)
   }
 
   const popOutTooltip =
     provider === 'youtube'
-      ? 'YouTube embed PiP is limited in browsers. Pop out opens a floating player window.'
-      : 'Pop out opens a floating player window.'
+      ? 'YouTube embed PiP is limited in browsers. Pop out opens a floating player.'
+      : 'Pop out opens a floating player.'
 
   return (
-    <div 
+    <>
+      {isPopupOpen && (
+        <MediaPopup
+          embedUrl={embedUrl}
+          provider={provider}
+          onClose={handleClosePopup}
+        />
+      )}
+      <div 
       className={`fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/60 bg-white/90 shadow-2xl backdrop-blur-md transition-all duration-300 ease-in-out dark:border-slate-700/60 dark:bg-slate-800/90 ${
         isExpanded ? '' : ''
       }`}
@@ -94,8 +89,8 @@ export function PersistentMediaPlayer() {
             </span>
           )}
         </div>
-        {/* Only show pop-out and open buttons when collapsed OR when not showing in expanded area */}
-        {(!isExpanded || playerOwner === 'popout') && (
+        {/* Only show pop-out and open buttons when collapsed or when popup is open */}
+        {(!isExpanded || isPopupOpen) && (
           <>
             <button
               type="button"
@@ -113,7 +108,7 @@ export function PersistentMediaPlayer() {
             </Link>
           </>
         )}
-        {isExpanded && playerOwner !== 'popout' && (
+        {isExpanded && !isPopupOpen && (
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -137,10 +132,10 @@ export function PersistentMediaPlayer() {
           isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 p-0 border-0'
         }`}
       >
-        {playerOwner === 'popout' ? (
+        {isPopupOpen ? (
           <div className="flex items-center justify-center rounded-xl bg-slate-100/60 px-4 py-8 dark:bg-slate-700/60">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Playing in pop-out window
+              Playing in pop-up
             </p>
           </div>
         ) : (
@@ -172,5 +167,6 @@ export function PersistentMediaPlayer() {
         )}
       </div>
     </div>
+    </>
   )
 }

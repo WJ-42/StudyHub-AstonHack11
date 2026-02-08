@@ -6,7 +6,6 @@ import {
   setMediaSpotifyYoutubeVideoId,
   removeMediaSpotifyYoutubeVideoId,
 } from '@/store/storage'
-import { onPlayerSyncMessage } from '@/utils/playerSync'
 
 export interface TrackMetadata {
   title: string
@@ -22,11 +21,15 @@ interface MediaContextValue {
   trackMetadata: TrackMetadata | null
   playerOwner: PlayerOwner
   isPlaying: boolean
+  isPopupOpen: boolean
+  currentTime: number
   setSpotifyUrl: (url: string) => void
   setYoutubeVideoId: (id: string | null) => void
   setTrackMetadata: (metadata: TrackMetadata | null) => void
   setPlayerOwner: (owner: PlayerOwner) => void
   setIsPlaying: (playing: boolean) => void
+  setIsPopupOpen: (open: boolean) => void
+  setCurrentTime: (time: number) => void
 }
 
 const MediaContext = createContext<MediaContextValue | null>(null)
@@ -37,23 +40,13 @@ export function MediaProvider({ children }: { children: React.ReactNode }) {
   const [trackMetadata, setTrackMetadataState] = useState<TrackMetadata | null>(null)
   const [playerOwner, setPlayerOwnerState] = useState<PlayerOwner>('main')
   const [isPlaying, setIsPlayingState] = useState(false)
+  const [isPopupOpen, setIsPopupOpenState] = useState(false)
+  const [currentTime, setCurrentTimeState] = useState(0)
 
   useEffect(() => {
     const links = getMediaLinks()
     setSpotifyUrlState(links.spotify ?? '')
     setYoutubeVideoIdState(getMediaSpotifyYoutubeVideoId())
-  }, [])
-
-  // Listen for player sync messages from pop-out window
-  useEffect(() => {
-    const unsubscribe = onPlayerSyncMessage((message) => {
-      if (message.type === 'popout-opened') {
-        setPlayerOwnerState('popout')
-      } else if (message.type === 'popout-closed') {
-        setPlayerOwnerState('main')
-      }
-    })
-    return unsubscribe
   }, [])
 
   // Auto-start playing when media is loaded
@@ -92,6 +85,14 @@ export function MediaProvider({ children }: { children: React.ReactNode }) {
     setIsPlayingState(playing)
   }, [])
 
+  const setIsPopupOpen = useCallback((open: boolean) => {
+    setIsPopupOpenState(open)
+  }, [])
+
+  const setCurrentTime = useCallback((time: number) => {
+    setCurrentTimeState(time)
+  }, [])
+
   return (
     <MediaContext.Provider
       value={{
@@ -100,11 +101,15 @@ export function MediaProvider({ children }: { children: React.ReactNode }) {
         trackMetadata,
         playerOwner,
         isPlaying,
+        isPopupOpen,
+        currentTime,
         setSpotifyUrl,
         setYoutubeVideoId,
         setTrackMetadata,
         setPlayerOwner,
         setIsPlaying,
+        setIsPopupOpen,
+        setCurrentTime,
       }}
     >
       {children}
