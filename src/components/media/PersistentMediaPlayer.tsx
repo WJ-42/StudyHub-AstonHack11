@@ -61,11 +61,11 @@ export function PersistentMediaPlayer() {
         isExpanded ? '' : ''
       }`}
     >
-      <div data-media-bar-header className="flex items-center justify-between gap-3 px-4 py-2.5">
+      <div data-media-bar-header className="flex h-8 min-h-8 items-center justify-between gap-3 px-4">
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center justify-center flex-shrink-0 text-lg hover:opacity-70 transition-all duration-200 hover:opacity-80"
+          className="flex h-6 w-6 flex-shrink-0 items-center justify-center text-base leading-none hover:opacity-70 transition-all duration-200 hover:opacity-80"
           aria-label={isExpanded ? 'Collapse player' : 'Expand player'}
           title={isExpanded ? 'Collapse player' : 'Expand player'}
         >
@@ -96,13 +96,13 @@ export function PersistentMediaPlayer() {
               type="button"
               onClick={handlePopOut}
               title={popOutTooltip}
-              className="flex-shrink-0 rounded-lg border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
+              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-slate-300/60 bg-white/60 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
             >
               Pop out
             </button>
             <Link
               to="/app/media"
-              className="flex-shrink-0 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
+              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-1 text-xs font-medium text-white shadow shadow-blue-500/20 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
             >
               Open
             </Link>
@@ -114,13 +114,13 @@ export function PersistentMediaPlayer() {
               type="button"
               onClick={handlePopOut}
               title={popOutTooltip}
-              className="flex-shrink-0 rounded-lg border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
+              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-slate-300/60 bg-white/60 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
             >
               Pop out
             </button>
             <Link
               to="/app/media"
-              className="flex-shrink-0 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
+              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-1 text-xs font-medium text-white shadow shadow-blue-500/20 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
             >
               Open
             </Link>

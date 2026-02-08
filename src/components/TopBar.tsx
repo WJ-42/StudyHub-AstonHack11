@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout, getUserName } from '@/store/session'
 import { getAvatar } from '@/store/storage'
@@ -17,7 +18,9 @@ export function TopBar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getAvatar())
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; right: number } | null>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -28,6 +31,15 @@ export function TopBar() {
     if (userMenuOpen) {
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [userMenuOpen])
+
+  useEffect(() => {
+    if (userMenuOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setDropdownRect({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    } else {
+      setDropdownRect(null)
     }
   }, [userMenuOpen])
 
@@ -67,6 +79,7 @@ export function TopBar() {
         />
         <div className="relative" ref={userMenuRef}>
           <button
+            ref={triggerRef}
             type="button"
             className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
             aria-haspopup="true"
@@ -83,8 +96,11 @@ export function TopBar() {
             )}
             <span className="hidden text-sm text-slate-700 dark:text-slate-300 sm:inline">{name || 'User'}</span>
           </button>
-          {userMenuOpen && (
-            <div className="absolute right-0 top-full z-50 mt-1 min-w-[140px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+          {userMenuOpen && dropdownRect && createPortal(
+            <div
+              className="fixed z-[10000] min-w-[140px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+              style={{ top: dropdownRect.top, right: dropdownRect.right }}
+            >
               <button
                 type="button"
                 className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
@@ -106,7 +122,8 @@ export function TopBar() {
               >
                 Logout
               </button>
-            </div>
+            </div>,
+            document.body
           )}
           <ProfileModal
             open={profileOpen}
