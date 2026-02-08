@@ -99,7 +99,7 @@ export function Sidebar() {
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {sidebarCollapsed ? '▶' : '◀'}
+            <span className="text-2xl">≡</span>
           </button>
           <button type="button" className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors md:hidden" onClick={closeMobile} aria-label="Close menu">×</button>
         </div>

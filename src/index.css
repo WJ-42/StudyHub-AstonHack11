@@ -436,3 +436,111 @@ body {
   }
 }
 
+/* Prevent text cursor and selection on interactive elements */
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="switch"],
+.cursor-pointer,
+.cursor-grab {
+  cursor: pointer !important;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+button:focus,
+a:focus,
+[role="button"]:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* Ensure proper cursor for draggable elements */
+[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Prevent caret/text cursor in all non-input elements */
+*:not(input):not(textarea):not([contenteditable="true"]) {
+  caret-color: transparent;
+}
+
+/* Ensure text inputs show proper text cursor */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+textarea,
+[contenteditable="true"] {
+  cursor: text !important;
+  user-select: text;
+  -webkit-user-select: text;
+  caret-color: auto;
+}
+
+/* Override any accidental contentEditable */
+*:not(input):not(textarea):not([contenteditable="true"]) {
+  -webkit-user-modify: read-only;
+}
+
+/* Prevent selection on UI elements like icons, emojis, and decorative spans */
+[aria-hidden="true"],
+svg,
+img {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  pointer-events: none;
+}
+
+/* Re-enable pointer events for interactive images/icons inside buttons/links */
+button svg,
+button img,
+a svg,
+a img,
+[role="button"] svg,
+[role="button"] img {
+  pointer-events: none;
+}
+
+/* Prevent text selection on cards and containers */
+.rounded-xl,
+.rounded-lg,
+.shadow-sm,
+.shadow-md,
+.shadow-lg {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Allow selection in content areas */
+p,
+h1, h2, h3, h4, h5, h6,
+li,
+td,
+th {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Prevent selection for clickable list items and tree items */
+[role="button"] p,
+[role="button"] span,
+.cursor-pointer p,
+.cursor-pointer span {
+  user-select: none;
+  -webkit-user-select: none;
+}
+

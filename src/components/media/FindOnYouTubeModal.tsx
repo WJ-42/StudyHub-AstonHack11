@@ -146,10 +146,14 @@ export function FindOnYouTubeModal({
                 <li key={v.videoId}>
                   <div
                     role="button"
-                    tabIndex={0}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    className="flex cursor-pointer select-none items-center gap-3 rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-700"
                     onClick={() => handleSelect(v.videoId)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelect(v.videoId) } }}
+                    onKeyDown={(e) => { 
+                      if (e.key === 'Enter' || e.key === ' ') { 
+                        e.preventDefault()
+                        handleSelect(v.videoId)
+                      }
+                    }}
                   >
                     {v.thumbnailUrl && (
                       <img src={v.thumbnailUrl} alt="" className="h-14 w-24 flex-shrink-0 rounded object-cover" />

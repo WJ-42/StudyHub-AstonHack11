@@ -139,11 +139,15 @@ export function Flashcards() {
           <span className="text-sm text-slate-500">{studyIndex + 1} / {studyCards.length}</span>
         </div>
         <div
-          className="min-h-[200px] cursor-pointer rounded-lg border-2 border-border-default bg-flashcard p-6"
+          className="min-h-[200px] cursor-pointer select-none rounded-lg border-2 border-border-default bg-flashcard p-6"
           onClick={() => setFlipped((f) => !f)}
           role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setFlipped((f) => !f)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setFlipped((f) => !f)
+            }
+          }}
         >
           <p className="text-lg text-text-primary">
             {flipped ? currentCard.back : currentCard.front}
