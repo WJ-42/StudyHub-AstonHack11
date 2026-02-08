@@ -21,10 +21,12 @@ interface MediaContextValue {
   youtubeVideoId: string | null
   trackMetadata: TrackMetadata | null
   playerOwner: PlayerOwner
+  isPlaying: boolean
   setSpotifyUrl: (url: string) => void
   setYoutubeVideoId: (id: string | null) => void
   setTrackMetadata: (metadata: TrackMetadata | null) => void
   setPlayerOwner: (owner: PlayerOwner) => void
+  setIsPlaying: (playing: boolean) => void
 }
 
 const MediaContext = createContext<MediaContextValue | null>(null)
@@ -34,6 +36,7 @@ export function MediaProvider({ children }: { children: React.ReactNode }) {
   const [youtubeVideoId, setYoutubeVideoIdState] = useState<string | null>(null)
   const [trackMetadata, setTrackMetadataState] = useState<TrackMetadata | null>(null)
   const [playerOwner, setPlayerOwnerState] = useState<PlayerOwner>('main')
+  const [isPlaying, setIsPlayingState] = useState(false)
 
   useEffect(() => {
     const links = getMediaLinks()
@@ -52,6 +55,19 @@ export function MediaProvider({ children }: { children: React.ReactNode }) {
     })
     return unsubscribe
   }, [])
+
+  // Auto-start playing when media is loaded
+  useEffect(() => {
+    if (spotifyUrl || youtubeVideoId) {
+      // Delay to allow iframe to load
+      const timer = setTimeout(() => {
+        setIsPlayingState(true)
+      }, 1000)
+      return () => clearTimeout(timer)
+    } else {
+      setIsPlayingState(false)
+    }
+  }, [spotifyUrl, youtubeVideoId])
 
   const setSpotifyUrl = useCallback((url: string) => {
     setSpotifyUrlState(url)
@@ -72,6 +88,10 @@ export function MediaProvider({ children }: { children: React.ReactNode }) {
     setPlayerOwnerState(owner)
   }, [])
 
+  const setIsPlaying = useCallback((playing: boolean) => {
+    setIsPlayingState(playing)
+  }, [])
+
   return (
     <MediaContext.Provider
       value={{
@@ -79,10 +99,12 @@ export function MediaProvider({ children }: { children: React.ReactNode }) {
         youtubeVideoId,
         trackMetadata,
         playerOwner,
+        isPlaying,
         setSpotifyUrl,
         setYoutubeVideoId,
         setTrackMetadata,
         setPlayerOwner,
+        setIsPlaying,
       }}
     >
       {children}

@@ -107,12 +107,12 @@ export function lsRemove(key: string): void {
   localStorage.removeItem(LS_PREFIX + key)
 }
 
-export type Theme = 'light' | 'dark' | 'cyberpunk' | 'octopus'
-export const THEMES: Theme[] = ['light', 'dark', 'cyberpunk', 'octopus']
+export type Theme = 'light' | 'dark' | 'cyberpunk' | 'octopus' | 'pipboy' | 'lofi'
+export const THEMES: Theme[] = ['light', 'dark', 'cyberpunk', 'octopus', 'pipboy', 'lofi']
 
 export function getTheme(): Theme {
   const v = lsGet('theme')
-  if (v === 'light' || v === 'dark' || v === 'cyberpunk' || v === 'octopus') return v
+  if (v === 'light' || v === 'dark' || v === 'cyberpunk' || v === 'octopus' || v === 'pipboy' || v === 'lofi') return v
   return 'light'
 }
 

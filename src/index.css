@@ -20,6 +20,40 @@ body {
   min-height: 100vh;
 }
 
+/* Enhanced shadows for depth */
+.shadow-sm {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+}
+
+/* Dark mode shadows */
+.dark .shadow-sm {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+}
+
+.dark .shadow-md {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+}
+
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+}
+
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6);
+}
+
 /* Light theme (default) */
 .theme-light {
   --color-card-bg: #ffffff;
@@ -185,6 +219,184 @@ body {
   border-color: #00FFC6 !important;
 }
 
+/* Pip-Boy theme - Fallout 4 CRT green-tinted retro terminal */
+.theme-pipboy {
+  --color-card-bg: #162416;
+  --color-input-bg: #0A0F0A;
+  --color-text-primary: #A6FFA0;
+  --color-text-muted: #75B874;
+  --color-border: #14FF00;
+  color-scheme: dark;
+}
+
+.theme-pipboy body {
+  background-color: #0A0F0A;
+  background-image: 
+    linear-gradient(rgba(20, 255, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 255, 0, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(65, 255, 0, 0.05) 0%, transparent 60%);
+  background-size: 20px 20px, 20px 20px, 100% 100%;
+}
+
+.theme-pipboy .bg-slate-50,
+.theme-pipboy .bg-slate-100 {
+  background-color: #162416 !important;
+}
+
+.theme-pipboy .bg-white {
+  background-color: #1F2E1F !important;
+}
+
+.theme-pipboy .bg-slate-800,
+.theme-pipboy .bg-slate-900 {
+  background-color: #0A0F0A !important;
+}
+
+.theme-pipboy .text-slate-800,
+.theme-pipboy .text-slate-700 {
+  color: #A6FFA0 !important;
+}
+
+.theme-pipboy .text-slate-600,
+.theme-pipboy .text-slate-500 {
+  color: #75B874 !important;
+}
+
+.theme-pipboy .border-slate-200,
+.theme-pipboy .border-slate-300,
+.theme-pipboy .border-slate-700 {
+  border-color: #4CFF47 !important;
+}
+
+.theme-pipboy .bg-blue-600 {
+  background-color: #14FF00 !important;
+  color: #0A0F0A !important;
+  box-shadow: 0 0 20px rgba(20, 255, 0, 0.4);
+}
+
+.theme-pipboy .hover\:bg-blue-700:hover {
+  background-color: #38E32D !important;
+  box-shadow: 0 0 25px rgba(20, 255, 0, 0.6);
+}
+
+.theme-pipboy button,
+.theme-pipboy input:focus {
+  transition: box-shadow 0.3s ease;
+}
+
+.theme-pipboy input:focus {
+  border-color: #7CFF00 !important;
+  box-shadow: 0 0 15px rgba(124, 255, 0, 0.3);
+}
+
+.theme-pipboy .border-slate-200:focus,
+.theme-pipboy .border-slate-300:focus {
+  border-color: #7CFF00 !important;
+}
+
+/* Optional CRT scanline effect for Pip-Boy */
+.theme-pipboy body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(15, 30, 15, 0.15),
+    rgba(15, 30, 15, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  z-index: 9999;
+}
+
+/* Lofi theme - Warm, cozy study room ambiance */
+.theme-lofi {
+  --color-card-bg: #47352E;
+  --color-input-bg: #2A1F1A;
+  --color-text-primary: #F6EDE7;
+  --color-text-muted: #C7B3A9;
+  --color-border: #A55F3B;
+  color-scheme: dark;
+}
+
+.theme-lofi body {
+  background-color: #2A1F1A;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(242, 159, 103, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(218, 111, 71, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 90%, rgba(90, 68, 59, 0.15) 0%, transparent 40%);
+}
+
+.theme-lofi .bg-slate-50,
+.theme-lofi .bg-slate-100 {
+  background-color: #47352E !important;
+}
+
+.theme-lofi .bg-white {
+  background-color: #5A443B !important;
+}
+
+.theme-lofi .bg-slate-800,
+.theme-lofi .bg-slate-900 {
+  background-color: #2A1F1A !important;
+}
+
+.theme-lofi .text-slate-800,
+.theme-lofi .text-slate-700 {
+  color: #F6EDE7 !important;
+}
+
+.theme-lofi .text-slate-600,
+.theme-lofi .text-slate-500 {
+  color: #C7B3A9 !important;
+}
+
+.theme-lofi .border-slate-200,
+.theme-lofi .border-slate-300,
+.theme-lofi .border-slate-700 {
+  border-color: #A55F3B !important;
+}
+
+.theme-lofi .bg-blue-600 {
+  background-color: #F29F67 !important;
+  color: #2A1F1A !important;
+  box-shadow: 0 0 20px rgba(242, 159, 103, 0.3);
+}
+
+.theme-lofi .hover\:bg-blue-700:hover {
+  background-color: #E98C5E !important;
+  box-shadow: 0 0 25px rgba(242, 159, 103, 0.5);
+}
+
+.theme-lofi button:hover,
+.theme-lofi a:hover {
+  color: #FFD7BA;
+  transition: color 0.3s ease;
+}
+
+.theme-lofi input:focus {
+  border-color: #FF9E6C !important;
+  box-shadow: 0 0 15px rgba(255, 158, 108, 0.3);
+}
+
+.theme-lofi .border-slate-200:focus,
+.theme-lofi .border-slate-300:focus {
+  border-color: #FFAD7C !important;
+}
+
+/* Optional warm glow effect for Lofi */
+.theme-lofi .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(242, 159, 103, 0.15), 0 4px 6px -4px rgba(242, 159, 103, 0.1);
+}
+
+.theme-lofi .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(242, 159, 103, 0.2), 0 8px 10px -6px rgba(242, 159, 103, 0.15);
+}
+
 /* Flashcard background gradient */
 .bg-flashcard {
   background: linear-gradient(135deg, var(--color-card-bg) 0%, var(--color-input-bg) 100%);
@@ -198,4 +410,29 @@ body {
 .compact .p-6 { padding: 0.75rem; }
 .compact .gap-4 { gap: 0.5rem; }
 .compact .rounded-xl { border-radius: 0.5rem; }
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.reduce-motion * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Backdrop blur support */
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
 

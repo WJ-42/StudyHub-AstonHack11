@@ -38,9 +38,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [reduceMotion, setReduceMotionState] = useState(() => getReduceMotion())
 
   useEffect(() => {
-    document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-cyberpunk', 'theme-octopus')
+    document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-cyberpunk', 'theme-octopus', 'theme-pipboy', 'theme-lofi')
     document.documentElement.classList.add(`theme-${theme}`)
-    if (theme === 'dark' || theme === 'cyberpunk' || theme === 'octopus') {
+    if (theme === 'dark' || theme === 'cyberpunk' || theme === 'octopus' || theme === 'pipboy' || theme === 'lofi') {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')

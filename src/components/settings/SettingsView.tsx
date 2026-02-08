@@ -6,20 +6,20 @@ export function SettingsView() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Settings</h2>
+      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Settings</h2>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100">Theme</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Choose Light, Dark, Cyberpunk, or Octopus.</p>
-        <div className="mt-3 flex flex-wrap gap-2">
+      <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Theme</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Choose from Light, Dark, Cyberpunk, Octopus, Pip-Boy, or Lofi.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
           {THEMES.map((t) => (
             <button
               key={t}
               type="button"
-              className={`rounded-lg px-4 py-2 text-sm font-medium capitalize ${
+              className={`rounded-xl px-5 py-2.5 text-sm font-medium capitalize transition-all duration-200 ${
                 theme === t
-                  ? 'bg-blue-600 text-white'
-                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 scale-105'
+                  : 'border border-slate-300/60 bg-white/60 text-slate-700 hover:bg-white hover:shadow-md hover:scale-105 dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/80'
               }`}
               onClick={() => setTheme(t as Theme)}
             >
@@ -29,72 +29,72 @@ export function SettingsView() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100">Compact mode</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Reduce padding and font size across the app.</p>
-        <div className="mt-3 flex items-center gap-2">
+      <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Compact mode</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Reduce padding and font size across the app.</p>
+        <div className="mt-4 flex items-center gap-3">
           <button
             type="button"
             role="switch"
             aria-checked={compact}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors ${
-              compact ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
+            className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-all duration-200 ${
+              compact ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25' : 'bg-slate-300 dark:bg-slate-600'
             }`}
             onClick={() => setCompact(!compact)}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+              className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform ${
                 compact ? 'translate-x-5' : 'translate-x-0.5'
               }`}
               style={{ marginTop: 2 }}
             />
           </button>
-          <span className="text-sm text-slate-700 dark:text-slate-300">{compact ? 'On' : 'Off'}</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{compact ? 'On' : 'Off'}</span>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100">Reduce motion</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Minimize animations and transitions. Also respects your system preference.</p>
-        <div className="mt-3 flex items-center gap-2">
+      <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Reduce motion</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Minimize animations and transitions. Also respects your system preference.</p>
+        <div className="mt-4 flex items-center gap-3">
           <button
             type="button"
             role="switch"
             aria-checked={reduceMotion}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors ${
-              reduceMotion ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
+            className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-all duration-200 ${
+              reduceMotion ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25' : 'bg-slate-300 dark:bg-slate-600'
             }`}
             onClick={() => setReduceMotion(!reduceMotion)}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+              className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform ${
                 reduceMotion ? 'translate-x-5' : 'translate-x-0.5'
               }`}
               style={{ marginTop: 2 }}
             />
           </button>
-          <span className="text-sm text-slate-700 dark:text-slate-300">{reduceMotion ? 'On' : 'Off'}</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{reduceMotion ? 'On' : 'Off'}</span>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100">Sidebar</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Sidebar is {sidebarCollapsed ? 'collapsed' : 'expanded'}. Use the collapse/expand button on the sidebar to change it.</p>
+      <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Sidebar</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Sidebar is {sidebarCollapsed ? 'collapsed' : 'expanded'}. Use the collapse/expand button on the sidebar to change it.</p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100">Theme preview</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Verify contrast: card, button, input, and flashcard sample.</p>
-        <div className="mt-4 space-y-3">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-700/50">
+      <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Theme preview</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Verify contrast: card, button, input, and flashcard sample.</p>
+        <div className="mt-4 space-y-4">
+          <div className="rounded-xl border border-slate-200/60 bg-slate-50/60 p-4 shadow-md dark:border-slate-600/60 dark:bg-slate-700/50">
             <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Sample card</p>
-            <p className="text-xs text-slate-600 dark:text-slate-300">Secondary text</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Secondary text</p>
           </div>
-          <div className="flex gap-2">
-            <button type="button" className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700">
+          <div className="flex gap-3">
+            <button type="button" className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:scale-105">
               Primary
             </button>
-            <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
+            <button type="button" className="rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200 hover:scale-105 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-600/80">
               Secondary
             </button>
           </div>
@@ -102,11 +102,11 @@ export function SettingsView() {
             type="text"
             readOnly
             value="Sample input"
-            className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+            className="w-full rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2.5 text-sm text-slate-800 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-200"
           />
-          <div className="rounded-lg border-2 border-border-default bg-flashcard p-4">
-            <p className="text-sm text-text-primary">Flashcard sample text</p>
-            <p className="mt-1 text-xs text-text-muted">Muted text</p>
+          <div className="rounded-xl border-2 border-border-default bg-flashcard p-5 shadow-md">
+            <p className="text-sm font-medium text-text-primary">Flashcard sample text</p>
+            <p className="mt-2 text-xs text-text-muted">Muted text</p>
           </div>
         </div>
       </div>

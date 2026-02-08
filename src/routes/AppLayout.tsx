@@ -9,31 +9,38 @@ import { isLoggedIn } from '@/store/session'
 
 const VALID_SECTIONS: AppSection[] = ['workspace', 'study', 'media', 'csv', 'settings']
 
-export function AppLayout() {
+function AppLayoutContent() {
   const { section } = useParams<{ section?: string }>()
-  if (!isLoggedIn()) {
-    return <Navigate to="/" replace />
-  }
-
+  
   const sectionParam = (section ?? 'workspace').toLowerCase()
   const activeSection = VALID_SECTIONS.includes(sectionParam as AppSection) ? sectionParam : 'workspace'
 
   return (
-    <WorkspaceProvider>
-      <LayoutProvider>
-        <div className="flex h-screen flex-col bg-slate-100 dark:bg-slate-900">
-          <TopBar />
-          <div className="flex flex-1 overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-auto p-4 pb-0 min-w-0" aria-label="Main content">
-              <div className="pb-4">
-                <Outlet context={{ section: activeSection }} />
-              </div>
-            </main>
-          </div>
-          <PersistentMediaPlayer />
+    <LayoutProvider>
+      <div className="relative flex h-screen flex-col bg-slate-50/95 dark:bg-slate-900/95">
+        <TopBar />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar />
+          <main className="relative z-10 flex-1 overflow-auto p-6 pb-0 min-w-0" aria-label="Main content">
+            <div className="pb-6">
+              <Outlet context={{ section: activeSection }} />
+            </div>
+          </main>
         </div>
-      </LayoutProvider>
+        <PersistentMediaPlayer />
+      </div>
+    </LayoutProvider>
+  )
+}
+
+export function AppLayout() {
+  if (!isLoggedIn()) {
+    return <Navigate to="/" replace />
+  }
+
+  return (
+    <WorkspaceProvider>
+      <AppLayoutContent />
     </WorkspaceProvider>
   )
 }
