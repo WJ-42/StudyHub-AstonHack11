@@ -1,8 +1,8 @@
 import { useSettings } from '@/contexts/SettingsContext'
-import { THEMES, type Theme } from '@/store/storage'
+import { THEMES, FONTS, getFontLabel, getFontFamilyPreview, type Theme, type AppFont } from '@/store/storage'
 
 export function SettingsView() {
-  const { theme, setTheme, compact, setCompact, sidebarCollapsed, reduceMotion, setReduceMotion } = useSettings()
+  const { theme, setTheme, font, setFont, compact, setCompact, reduceMotion, setReduceMotion } = useSettings()
 
   return (
     <div className="space-y-6">
@@ -18,12 +18,34 @@ export function SettingsView() {
               type="button"
               className={`rounded-xl px-5 py-2.5 text-sm font-medium capitalize transition-all duration-200 ${
                 theme === t
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 scale-105'
-                  : 'border border-slate-300/60 bg-white/60 text-slate-700 hover:bg-white hover:shadow-md hover:scale-105 dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/80'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'border border-slate-300/60 bg-white/60 text-slate-700 hover:bg-white hover:shadow-md hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/80'
               }`}
               onClick={() => setTheme(t as Theme)}
             >
               {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Font</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Choose a typeface for the app. Works with any theme.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {FONTS.map((f) => (
+            <button
+              key={f}
+              type="button"
+              className={`rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                font === f
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'border border-slate-300/60 bg-white/60 text-slate-700 hover:bg-white hover:shadow-md hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/80'
+              }`}
+              onClick={() => setFont(f as AppFont)}
+              style={font === f ? undefined : { fontFamily: getFontFamilyPreview(f as AppFont) }}
+            >
+              {getFontLabel(f as AppFont)}
             </button>
           ))}
         </div>
@@ -78,11 +100,6 @@ export function SettingsView() {
       </div>
 
       <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
-        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Sidebar</h3>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Sidebar is {sidebarCollapsed ? 'collapsed' : 'expanded'}. Use the collapse/expand button on the sidebar to change it.</p>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-lg dark:border-slate-700/60 dark:bg-slate-800/80">
         <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Theme preview</h3>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Verify contrast: card, button, input, and flashcard sample.</p>
         <div className="mt-4 space-y-4">
@@ -91,10 +108,10 @@ export function SettingsView() {
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Secondary text</p>
           </div>
           <div className="flex gap-3">
-            <button type="button" className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:scale-105">
+            <button type="button" className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:opacity-95">
               Primary
             </button>
-            <button type="button" className="rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200 hover:scale-105 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-600/80">
+            <button type="button" className="rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200 hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-600/80">
               Secondary
             </button>
           </div>

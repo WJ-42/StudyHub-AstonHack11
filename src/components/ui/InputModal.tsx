@@ -51,7 +51,7 @@ export function InputModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
       <div className="absolute inset-0 bg-black/50 transition-opacity duration-200" aria-hidden onClick={handleClose} />
-      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl transition-[transform,opacity] duration-200 ease-out dark:border-slate-700 dark:bg-slate-800">
+      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl animate-fade-in-up dark:border-slate-700 dark:bg-slate-800">
         <h2 id="input-modal-title" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           {title}
         </h2>

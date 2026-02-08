@@ -61,20 +61,20 @@ export function PersistentMediaPlayer() {
         isExpanded ? '' : ''
       }`}
     >
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div data-media-bar-header className="flex items-center justify-between gap-3 px-4 py-2.5">
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex-shrink-0 text-lg hover:opacity-70 transition-all duration-200 hover:scale-110"
+          className="flex items-center justify-center flex-shrink-0 text-lg hover:opacity-70 transition-all duration-200 hover:opacity-80"
           aria-label={isExpanded ? 'Collapse player' : 'Expand player'}
           title={isExpanded ? 'Collapse player' : 'Expand player'}
         >
           {isExpanded ? '▼' : '▲'}
         </button>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 flex items-center">
           {trackMetadata ? (
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+              <div className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200 align-middle">
                 {trackMetadata.title}
               </div>
               {trackMetadata.artist && (
@@ -84,7 +84,7 @@ export function PersistentMediaPlayer() {
               )}
             </div>
           ) : (
-            <span className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <span className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200 align-middle">
               {title}
             </span>
           )}
@@ -96,13 +96,13 @@ export function PersistentMediaPlayer() {
               type="button"
               onClick={handlePopOut}
               title={popOutTooltip}
-              className="flex-shrink-0 rounded-lg border border-slate-300/60 bg-white/60 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:scale-105 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
+              className="flex-shrink-0 rounded-lg border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
             >
               Pop out
             </button>
             <Link
               to="/app/media"
-              className="flex-shrink-0 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all hover:scale-105 dark:from-blue-500 dark:to-blue-600"
+              className="flex-shrink-0 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
             >
               Open
             </Link>
@@ -114,13 +114,13 @@ export function PersistentMediaPlayer() {
               type="button"
               onClick={handlePopOut}
               title={popOutTooltip}
-              className="flex-shrink-0 rounded-lg border border-slate-300/60 bg-white/60 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:scale-105 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
+              className="flex-shrink-0 rounded-lg border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white hover:shadow-md transition-all hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-600/80"
             >
               Pop out
             </button>
             <Link
               to="/app/media"
-              className="flex-shrink-0 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all hover:scale-105 dark:from-blue-500 dark:to-blue-600"
+              className="flex-shrink-0 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
             >
               Open
             </Link>

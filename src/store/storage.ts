@@ -120,6 +120,43 @@ export function setTheme(theme: Theme): void {
   lsSet('theme', theme)
 }
 
+export type AppFont = 'dm-sans' | 'lora' | 'fraunces' | 'space-grotesk' | 'nunito'
+export const FONTS: AppFont[] = ['dm-sans', 'lora', 'fraunces', 'space-grotesk', 'nunito']
+
+const FONT_LABELS: Record<AppFont, string> = {
+  'dm-sans': 'DM Sans',
+  lora: 'Lora',
+  fraunces: 'Fraunces',
+  'space-grotesk': 'Space Grotesk',
+  nunito: 'Nunito',
+}
+
+export function getFontLabel(font: AppFont): string {
+  return FONT_LABELS[font]
+}
+
+const FONT_FAMILY_PREVIEW: Record<AppFont, string> = {
+  'dm-sans': '"DM Sans", sans-serif',
+  lora: 'Lora, Georgia, serif',
+  fraunces: '"Fraunces", Georgia, serif',
+  'space-grotesk': '"Space Grotesk", sans-serif',
+  nunito: '"Nunito", sans-serif',
+}
+
+export function getFontFamilyPreview(font: AppFont): string {
+  return FONT_FAMILY_PREVIEW[font]
+}
+
+export function getFont(): AppFont {
+  const v = lsGet('font')
+  if (v && FONTS.includes(v as AppFont)) return v as AppFont
+  return 'dm-sans'
+}
+
+export function setFont(font: AppFont): void {
+  lsSet('font', font)
+}
+
 export function getCompact(): boolean {
   return lsGet('compact') === 'true'
 }

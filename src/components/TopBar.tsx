@@ -42,7 +42,11 @@ export function TopBar() {
           onClick={() => setMobileMenuOpen(true)}
           aria-label="Open menu"
         >
-          <span className="text-xl">☰</span>
+          <svg className="h-6 w-6 text-current" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <rect x="3" y="6" width="18" height="1.5" rx="0.75" />
+            <rect x="3" y="11.25" width="18" height="1.5" rx="0.75" />
+            <rect x="3" y="16.5" width="18" height="1.5" rx="0.75" />
+          </svg>
         </button>
         <Link to="/app/workspace" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Study Hub

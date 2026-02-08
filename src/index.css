@@ -3,10 +3,12 @@
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Font applied via [data-font] on html from Settings */
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
   /* Default theme variables */
   --color-card-bg: #ffffff;
   --color-input-bg: #f8fafc;
@@ -18,6 +20,32 @@
 body {
   margin: 0;
   min-height: 100vh;
+}
+
+/* Font choices (set via data-font on html from Settings) */
+html[data-font="dm-sans"],
+html:not([data-font]) {
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+}
+html[data-font="lora"] {
+  font-family: "Lora", Georgia, "Times New Roman", serif;
+}
+html[data-font="fraunces"] {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+}
+html[data-font="space-grotesk"] {
+  font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+}
+html[data-font="nunito"] {
+  font-family: "Nunito", system-ui, -apple-system, sans-serif;
+}
+
+/* Media bar header: override inherited line-height so text centers vertically */
+[data-media-bar-header] {
+  line-height: 1;
+}
+[data-media-bar-header] * {
+  line-height: inherit;
 }
 
 /* Enhanced shadows for depth */
@@ -63,14 +91,143 @@ body {
   --color-border: #cbd5e1;
 }
 
-/* Dark theme */
+/* Dark theme - Vantablack / lights out */
 .theme-dark,
 .dark {
-  --color-card-bg: #1e293b;
-  --color-input-bg: #0f172a;
+  --color-card-bg: #000000;
+  --color-input-bg: #000000;
   --color-text-primary: #f1f5f9;
   --color-text-muted: #94a3b8;
-  --color-border: #475569;
+  --color-border: #1a1a1a;
+  color-scheme: dark;
+}
+
+.theme-dark body,
+.dark body {
+  background-color: #000000;
+}
+
+/* Force all dark-mode backgrounds to pure black */
+.theme-dark .bg-slate-50,
+.theme-dark .bg-slate-100,
+.theme-dark .bg-slate-200,
+.theme-dark .bg-slate-300,
+.theme-dark .bg-slate-400,
+.theme-dark .bg-slate-500,
+.theme-dark .bg-slate-600,
+.theme-dark .bg-slate-700,
+.theme-dark .bg-slate-800,
+.theme-dark .bg-slate-900,
+.theme-dark .bg-white,
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-slate-200,
+.dark .bg-slate-300,
+.dark .bg-slate-400,
+.dark .bg-slate-500,
+.dark .bg-slate-600,
+.dark .bg-slate-700,
+.dark .bg-slate-800,
+.dark .bg-slate-900,
+.dark .bg-white {
+  background-color: #000000 !important;
+}
+
+/* Dark mode hover backgrounds: very subtle so UI still feels interactive */
+.theme-dark .hover\:bg-slate-100:hover,
+.theme-dark .hover\:bg-slate-700:hover,
+.theme-dark .hover\:bg-slate-600:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-slate-700:hover,
+.dark .hover\:bg-slate-600:hover {
+  background-color: #0a0a0a !important;
+}
+
+/* Keep text light in dark theme */
+.theme-dark .text-slate-800,
+.theme-dark .text-slate-700,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: #f1f5f9 !important;
+}
+
+.theme-dark .text-slate-600,
+.theme-dark .text-slate-500,
+.theme-dark .text-slate-400,
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Dark theme borders: subtle so elements don’t disappear */
+.theme-dark .border-slate-200,
+.theme-dark .border-slate-300,
+.theme-dark .border-slate-600,
+.theme-dark .border-slate-700,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-slate-600,
+.dark .border-slate-700 {
+  border-color: #1a1a1a !important;
+}
+
+/* Opacity variants: force to black (Tailwind generates e.g. bg-slate-800/80) */
+.theme-dark [class*="bg-slate-"],
+.theme-dark [class*="bg-white"],
+.dark [class*="bg-slate-"],
+.dark [class*="bg-white"] {
+  background-color: #000000 !important;
+}
+
+/* Switch toggles only: keep dark grey fill in dark mode */
+.theme-dark [role="switch"][class*="bg-slate-"],
+.dark [role="switch"][class*="bg-slate-"] {
+  background-color: #374151 !important;
+}
+
+/* Toggle thumb stays white on the dark grey track */
+.theme-dark [role="switch"] span[class*="bg-white"],
+.dark [role="switch"] span[class*="bg-white"] {
+  background-color: #ffffff !important;
+}
+
+/* Other buttons: black background + grey outline, light text */
+.theme-dark button[class*="bg-slate-"],
+.theme-dark button[class*="bg-white"],
+.dark button[class*="bg-slate-"],
+.dark button[class*="bg-white"] {
+  background-color: #000000 !important;
+  border: 1px solid #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Menu toggle buttons (hamburger, sidebar collapse): no outline */
+.theme-dark button[aria-label*="sidebar"],
+.theme-dark button[aria-label="Open menu"],
+.dark button[aria-label*="sidebar"],
+.dark button[aria-label="Open menu"] {
+  border: none !important;
+}
+
+.theme-dark button[class*="bg-slate-"]:hover,
+.theme-dark button[class*="bg-white"]:hover,
+.dark button[class*="bg-slate-"]:hover,
+.dark button[class*="bg-white"]:hover {
+  background-color: #000000 !important;
+  border-color: #64748b !important;
+}
+
+/* Inputs and dropdowns: black with grey outline */
+.theme-dark input,
+.theme-dark select,
+.theme-dark [role="combobox"],
+.dark input,
+.dark select,
+.dark [role="combobox"] {
+  background-color: #000000 !important;
+  border-color: #475569 !important;
+  color: #f1f5f9 !important;
 }
 
 /* Cyberpunk theme - Neon magenta, electric cyan, acid yellow */
@@ -411,11 +568,11 @@ body {
 .compact .gap-4 { gap: 0.5rem; }
 .compact .rounded-xl { border-radius: 0.5rem; }
 
-/* Smooth transitions */
+/* Smooth, lowkey transitions — study-friendly, no rush */
 * {
   transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition-duration: 220ms;
 }
 
 .reduce-motion * {

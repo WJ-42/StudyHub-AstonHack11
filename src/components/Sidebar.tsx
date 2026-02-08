@@ -60,10 +60,10 @@ export function Sidebar() {
           key={id}
           to={`/app/${id}`}
           title={sidebarCollapsed ? label : undefined}
-          className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+          className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 ${
             current === id
-              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-              : 'text-slate-700 hover:bg-white/60 hover:shadow-md dark:text-slate-300 dark:hover:bg-slate-700/60'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50'
           } ${sidebarCollapsed ? 'justify-center px-2' : ''}`}
           onClick={closeMobile}
         >
@@ -99,7 +99,11 @@ export function Sidebar() {
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            <span className="text-2xl">≡</span>
+            <svg className="h-6 w-6 text-current" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <rect x="3" y="6" width="18" height="1.5" rx="0.75" />
+              <rect x="3" y="11.25" width="18" height="1.5" rx="0.75" />
+              <rect x="3" y="16.5" width="18" height="1.5" rx="0.75" />
+            </svg>
           </button>
           <button type="button" className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors md:hidden" onClick={closeMobile} aria-label="Close menu">×</button>
         </div>

@@ -44,7 +44,8 @@ export function PdfViewer({ contentBase64, fileId: _fileId, size: _size }: PdfVi
   const [zoom, setZoom] = useState<ZoomLevel>(1)
   const [fitToWidth, setFitToWidth] = useState(false)
   const [containerWidth, setContainerWidth] = useState(0)
-  const pageWidthRef = useRef(0)
+  const naturalPageWidthRef = useRef(0)
+  const hasCaputuredWidthRef = useRef(false)
 
   useEffect(() => {
     if (!contentBase64) return
@@ -92,14 +93,20 @@ export function PdfViewer({ contentBase64, fileId: _fileId, size: _size }: PdfVi
     return () => observer.disconnect()
   }, [numPages])
 
-  const [pageWidth, setPageWidth] = useState(0)
-  const effectiveScale = fitToWidth && containerWidth > 0 && pageWidth > 0
-    ? containerWidth / pageWidth
+  const [naturalPageWidth, setNaturalPageWidth] = useState(0)
+  // Account for horizontal padding (p-4 = 16px each side = 32px total)
+  const HORIZONTAL_PADDING = 32
+  const effectiveScale = fitToWidth && containerWidth > 0 && naturalPageWidth > 0
+    ? (containerWidth - HORIZONTAL_PADDING) / naturalPageWidth
     : zoom
 
-  const handleLoadSuccess = useCallback((page: { width: number }) => {
-    pageWidthRef.current = page.width
-    setPageWidth(page.width)
+  const handleLoadSuccess = useCallback((page: { width: number; originalWidth?: number }) => {
+    // Only capture the natural width once - check the ref to prevent recapture
+    if (!hasCaputuredWidthRef.current) {
+      hasCaputuredWidthRef.current = true
+      naturalPageWidthRef.current = page.width
+      setNaturalPageWidth(page.width)
+    }
   }, [])
 
   const zoomIn = () => {

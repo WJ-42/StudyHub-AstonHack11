@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import {
   getTheme,
   setTheme as persistTheme,
+  getFont,
+  setFont as persistFont,
   getCompact,
   setCompact as persistCompact,
   getSidebarCollapsed,
@@ -9,11 +11,14 @@ import {
   getReduceMotion,
   setReduceMotion as persistReduceMotion,
   type Theme,
+  type AppFont,
 } from '@/store/storage'
 
 interface SettingsContextValue {
   theme: Theme
   setTheme: (t: Theme) => void
+  font: AppFont
+  setFont: (f: AppFont) => void
   compact: boolean
   setCompact: (v: boolean) => void
   sidebarCollapsed: boolean
@@ -33,6 +38,7 @@ function getEffectiveReduceMotion(): boolean {
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => getTheme())
+  const [font, setFontState] = useState<AppFont>(() => getFont())
   const [compact, setCompactState] = useState(() => getCompact())
   const [sidebarCollapsed, setSidebarCollapsedState] = useState(() => getSidebarCollapsed())
   const [reduceMotion, setReduceMotionState] = useState(() => getReduceMotion())
@@ -46,6 +52,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.remove('dark')
     }
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-font', font)
+  }, [font])
 
   useEffect(() => {
     if (compact) document.documentElement.classList.add('compact')
@@ -74,6 +84,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     persistTheme(t)
   }, [])
 
+  const setFont = useCallback((f: AppFont) => {
+    setFontState(f)
+    persistFont(f)
+  }, [])
+
   const setCompact = useCallback((v: boolean) => {
     setCompactState(v)
     persistCompact(v)
@@ -94,6 +109,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       value={{
         theme,
         setTheme,
+        font,
+        setFont,
         compact,
         setCompact,
         sidebarCollapsed,
