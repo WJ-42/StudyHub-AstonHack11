@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { LayoutProvider } from '@/contexts/LayoutContext'
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext'
 import { PersistentMediaPlayer } from '@/components/media/PersistentMediaPlayer'
+import { BackgroundTimerService } from '@/components/study/BackgroundTimerService'
 import { type AppSection } from '@/types'
 import { isLoggedIn } from '@/store/session'
 
@@ -17,12 +18,13 @@ function AppLayoutContent() {
 
   return (
     <LayoutProvider>
-      <div className="relative flex h-screen flex-col bg-slate-50/95 dark:bg-slate-900/95">
+      <BackgroundTimerService />
+      <div className="relative flex h-screen flex-col bg-slate-50/95 dark:bg-slate-900/95" data-app-layout>
         <TopBar />
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex min-h-0 flex-1">
           <Sidebar />
-          <main className="relative z-10 flex-1 overflow-auto p-6 pb-0 min-w-0" aria-label="Main content">
-            <div className="pb-6">
+          <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden p-6 pb-0 min-w-0" aria-label="Main content">
+            <div className="flex min-h-0 flex-1 flex-col pb-6">
               <Outlet context={{ section: activeSection }} />
             </div>
           </main>

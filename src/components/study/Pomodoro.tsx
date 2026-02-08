@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getPomodoroState, setPomodoroState, type PomodoroState } from '@/store/study'
-import { requestNotificationPermission, showNotification } from '@/utils/notifications'
+import { requestNotificationPermission } from '@/utils/notifications'
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -15,7 +15,6 @@ export function Pomodoro() {
   const [shortBreakMinutes, setShortBreakMinutes] = useState(5)
   const [longBreakMinutes, setLongBreakMinutes] = useState(15)
   const [cyclesBeforeLongBreak, setCyclesBeforeLongBreak] = useState(4)
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const load = useCallback(async () => {
     const s = await getPomodoroState()
@@ -30,40 +29,12 @@ export function Pomodoro() {
     load()
   }, [load])
 
+  // Sync from IDB every second when running (BackgroundTimerService does the actual ticking)
   useEffect(() => {
     if (!state?.isRunning) return
-    tickRef.current = setInterval(async () => {
-      const s = await getPomodoroState()
-      if (!s.isRunning) return
-      const next = s.remainingSeconds - 1
-      if (next <= 0) {
-        let newPhase: PomodoroState['phase']
-        let newRemaining: number
-        let newCycle = s.cycleCount
-        if (s.phase === 'work') {
-          newCycle += 1
-          const needLong = s.cyclesBeforeLongBreak > 0 && newCycle % s.cyclesBeforeLongBreak === 0
-          newPhase = needLong ? 'longBreak' : 'shortBreak'
-          newRemaining = needLong ? s.longBreakMinutes * 60 : s.shortBreakMinutes * 60
-          showNotification('Pomodoro: Work Complete', { body: `Great work! Time for a ${needLong ? 'long' : 'short'} break.` })
-        } else {
-          newPhase = 'work'
-          newRemaining = s.workMinutes * 60
-          showNotification('Pomodoro: Break Complete', { body: 'Break time is over. Ready to focus?' })
-        }
-        const nextState: PomodoroState = { ...s, phase: newPhase, remainingSeconds: newRemaining, cycleCount: newCycle }
-        await setPomodoroState(nextState)
-        setState(nextState)
-      } else {
-        const nextState = { ...s, remainingSeconds: next }
-        await setPomodoroState(nextState)
-        setState(nextState)
-      }
-    }, 1000)
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current)
-    }
-  }, [state?.isRunning])
+    const id = setInterval(load, 1000)
+    return () => clearInterval(id)
+  }, [state?.isRunning, load])
 
   if (!state) return <p className="text-slate-500">Loading...</p>
 

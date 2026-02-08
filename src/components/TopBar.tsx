@@ -4,13 +4,16 @@ import { logout, getUserName } from '@/store/session'
 import { getAvatar } from '@/store/storage'
 import { useSearch } from '@/contexts/SearchContext'
 import { useLayout } from '@/contexts/LayoutContext'
+import { useSettings } from '@/contexts/SettingsContext'
 import { ProfileModal } from '@/components/profile/ProfileModal'
+import { OctopusIcon } from '@/components/OctopusIcon'
 
 export function TopBar() {
   const navigate = useNavigate()
   const name = getUserName()
   const { query, setQuery } = useSearch()
   const { setMobileMenuOpen } = useLayout()
+  const { theme } = useSettings()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getAvatar())
@@ -48,7 +51,8 @@ export function TopBar() {
             <rect x="3" y="16.5" width="18" height="1.5" rx="0.75" />
           </svg>
         </button>
-        <Link to="/app/workspace" className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+        <Link to="/app/workspace" className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
+          {theme === 'octopus' && <OctopusIcon className="h-6 w-6 shrink-0" />}
           Study Hub
         </Link>
       </div>

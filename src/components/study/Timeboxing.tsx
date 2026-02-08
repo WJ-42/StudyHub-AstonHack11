@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   getTimeboxState,
   setTimeboxState,
@@ -17,7 +17,6 @@ export function Timeboxing() {
   const [state, setState] = useState<TimeboxState | null>(null)
   const [newLabel, setNewLabel] = useState('')
   const [newMinutes, setNewMinutes] = useState('25')
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const load = useCallback(async () => {
     const s = await getTimeboxState()
@@ -33,34 +32,12 @@ export function Timeboxing() {
     setState(next)
   }, [])
 
+  // Sync from IDB every second when running (BackgroundTimerService does the actual ticking)
   useEffect(() => {
     if (!state?.isRunning || !state.blocks.length) return
-    const current = state.blocks[state.currentIndex]
-    if (!current) return
-    tickRef.current = setInterval(async () => {
-      const s = await getTimeboxState()
-      if (!s.isRunning) return
-      const next = s.remainingSeconds - 1
-      if (next <= 0) {
-        const nextIndex = s.currentIndex + 1
-        if (nextIndex >= s.blocks.length) {
-          persist({ ...s, isRunning: false, remainingSeconds: 0 })
-          return
-        }
-        const nextBlock = s.blocks[nextIndex]
-        persist({
-          ...s,
-          currentIndex: nextIndex,
-          remainingSeconds: nextBlock.durationMinutes * 60,
-        })
-      } else {
-        persist({ ...s, remainingSeconds: next })
-      }
-    }, 1000)
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current)
-    }
-  }, [state?.isRunning, state?.blocks.length, state?.currentIndex, persist])
+    const id = setInterval(load, 1000)
+    return () => clearInterval(id)
+  }, [state?.isRunning, state?.blocks.length, load])
 
   if (!state) return <p className="text-slate-500">Loading...</p>
 

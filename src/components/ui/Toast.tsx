@@ -25,6 +25,8 @@ export function Toast({ id, message, variant = 'info', duration = 4000, onClose 
 
   return (
     <div
+      data-toast
+      data-toast-variant={variant}
       className={`flex items-center justify-between gap-3 rounded-lg px-4 py-3 shadow-lg animate-toast-enter ${variantStyles[variant]}`}
       role="status"
     >

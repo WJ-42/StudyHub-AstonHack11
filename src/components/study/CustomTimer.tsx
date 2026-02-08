@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getCustomTimerState, setCustomTimerState, type CustomTimerState } from '@/store/study'
-import { requestNotificationPermission, showNotification } from '@/utils/notifications'
+import { requestNotificationPermission } from '@/utils/notifications'
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -11,7 +11,6 @@ function formatTime(seconds: number): string {
 export function CustomTimer() {
   const [state, setState] = useState<CustomTimerState | null>(null)
   const [durationInput, setDurationInput] = useState('25')
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const load = useCallback(async () => {
     const s = await getCustomTimerState()
@@ -23,27 +22,12 @@ export function CustomTimer() {
     load()
   }, [load])
 
+  // Sync from IDB every second when running (BackgroundTimerService does the actual ticking)
   useEffect(() => {
     if (!state?.isRunning) return
-    tickRef.current = setInterval(async () => {
-      const s = await getCustomTimerState()
-      if (!s.isRunning) return
-      const next = s.remainingSeconds - 1
-      if (next <= 0) {
-        const nextState = { ...s, remainingSeconds: 0, isRunning: false }
-        await setCustomTimerState(nextState)
-        setState(nextState)
-        showNotification('Custom Timer Complete', { body: 'Your timer has finished!' })
-      } else {
-        const nextState = { ...s, remainingSeconds: next }
-        await setCustomTimerState(nextState)
-        setState(nextState)
-      }
-    }, 1000)
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current)
-    }
-  }, [state?.isRunning])
+    const id = setInterval(load, 1000)
+    return () => clearInterval(id)
+  }, [state?.isRunning, load])
 
   if (!state) return <p className="text-slate-500">Loading...</p>
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isLoggedIn, setLoggedIn } from '@/store/session'
 import { useSettings } from '@/contexts/SettingsContext'
+import { OctopusIcon } from '@/components/OctopusIcon'
 import { THEMES, type Theme } from '@/store/storage'
 
 const FEATURES = [
@@ -101,11 +102,12 @@ export function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className={`min-h-screen ${theme === 'octopus' ? 'bg-transparent' : 'bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800'}`}>
       <div className="mx-auto max-w-5xl px-4 py-16 sm:py-24">
         {/* Intro section - fades in on load */}
         <section className="animate-landing-intro text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-5xl">
+          <h1 className="flex items-center justify-center gap-3 text-4xl font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-5xl">
+            {theme === 'octopus' && <OctopusIcon className="h-10 w-10 shrink-0 sm:h-12 sm:w-12" />}
             Study Hub
           </h1>
           <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { get5217State, set5217State, type FiftyTwoSeventeenState } from '@/store/study'
-import { requestNotificationPermission, showNotification } from '@/utils/notifications'
+import { useState, useEffect, useCallback } from 'react'
+import { get5217State, set5217State } from '@/store/study'
+import { requestNotificationPermission } from '@/utils/notifications'
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -9,8 +9,7 @@ function formatTime(seconds: number): string {
 }
 
 export function FiftyTwoSeventeen() {
-  const [state, setState] = useState<FiftyTwoSeventeenState | null>(null)
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [state, setState] = useState<Awaited<ReturnType<typeof get5217State>> | null>(null)
 
   const load = useCallback(async () => {
     const s = await get5217State()
@@ -21,33 +20,12 @@ export function FiftyTwoSeventeen() {
     load()
   }, [load])
 
+  // Sync from IDB every second when running (BackgroundTimerService does the actual ticking)
   useEffect(() => {
     if (!state?.isRunning) return
-    tickRef.current = setInterval(async () => {
-      const s = await get5217State()
-      if (!s.isRunning) return
-      const next = s.remainingSeconds - 1
-      if (next <= 0) {
-        const newPhase: FiftyTwoSeventeenState['phase'] = s.phase === 'work' ? 'break' : 'work'
-        const newRemaining = newPhase === 'work' ? s.workMinutes * 60 : s.breakMinutes * 60
-        const nextState: FiftyTwoSeventeenState = { ...s, phase: newPhase, remainingSeconds: newRemaining }
-        await set5217State(nextState)
-        setState(nextState)
-        if (newPhase === 'break') {
-          showNotification('52/17: Work Complete', { body: 'Great work! Time for a 17-minute break.' })
-        } else {
-          showNotification('52/17: Break Complete', { body: 'Break time over. Ready for 52 minutes of focus?' })
-        }
-      } else {
-        const nextState = { ...s, remainingSeconds: next }
-        await set5217State(nextState)
-        setState(nextState)
-      }
-    }, 1000)
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current)
-    }
-  }, [state?.isRunning])
+    const id = setInterval(load, 1000)
+    return () => clearInterval(id)
+  }, [state?.isRunning, load])
 
   if (!state) return <p className="text-slate-500">Loading...</p>
 

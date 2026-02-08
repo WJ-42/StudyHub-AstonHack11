@@ -359,36 +359,88 @@ html[data-font="nunito"] {
   box-shadow: 0 0 15px rgba(245, 255, 61, 0.3);
 }
 
-/* Octopus theme - Deep-sea purples + bioluminescent greens */
+/* Octopus theme - Coral reef / ocean: purples, cyans, orange outlines */
+/* Cursor is applied via JS in OctopusThemeEffects so the URL resolves correctly */
 .theme-octopus {
-  --color-card-bg: #1E0533;
-  --color-input-bg: #140024;
+  --color-card-bg: rgba(50, 80, 120, 0.28);
+  --color-input-bg: rgba(45, 65, 100, 0.35);
   --color-text-primary: #EDE6FF;
   --color-text-muted: #BCAEDB;
-  --color-border: #8A2BE2;
+  --color-border: #d97634;
   color-scheme: dark;
 }
 
+/* Background: opaque ocean floor image only (no translucency on background) */
 .theme-octopus body {
-  background-color: #0A0014;
-  background-image: 
-    radial-gradient(circle at 30% 40%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 70% 60%, rgba(62, 248, 168, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 50% 80%, rgba(192, 132, 245, 0.08) 0%, transparent 40%);
+  background-color: #0a0e1a;
+  background-image: url('/octopus-theme/ocean-floor.jpg');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
 }
 
+/* Let the ocean floor show through the main app layout */
+.theme-octopus [data-app-layout] {
+  background: transparent !important;
+}
+
+/* Translucent ocean/coral-reef panels – use html for higher specificity over Tailwind dark: */
 .theme-octopus .bg-slate-50,
-.theme-octopus .bg-slate-100 {
-  background-color: #1E0533 !important;
+.theme-octopus .bg-slate-100,
+.theme-octopus [class*='bg-slate-50'],
+.theme-octopus [class*='bg-slate-100'],
+html.theme-octopus [class*='bg-slate-50'],
+html.theme-octopus [class*='bg-slate-100'] {
+  background-color: rgba(60, 95, 140, 0.22) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.theme-octopus .bg-white {
-  background-color: #2A0B47 !important;
+.theme-octopus .bg-white,
+.theme-octopus [class*='bg-white'],
+html.theme-octopus [class*='bg-white'] {
+  background-color: rgba(75, 110, 155, 0.26) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .theme-octopus .bg-slate-800,
-.theme-octopus .bg-slate-900 {
-  background-color: #140024 !important;
+.theme-octopus .bg-slate-900,
+.theme-octopus [class*='bg-slate-800'],
+.theme-octopus [class*='bg-slate-900'],
+html.theme-octopus [class*='bg-slate-800'],
+html.theme-octopus [class*='bg-slate-900'] {
+  background-color: rgba(45, 55, 95, 0.38) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Dark buttons (slate-600/700) so they’re not black in octopus theme */
+.theme-octopus .bg-slate-600,
+.theme-octopus .bg-slate-700,
+.theme-octopus [class*='bg-slate-600'],
+.theme-octopus [class*='bg-slate-700'],
+html.theme-octopus [class*='bg-slate-600'],
+html.theme-octopus [class*='bg-slate-700'] {
+  background-color: rgba(55, 65, 105, 0.4) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.theme-octopus .hover\:bg-slate-700:hover,
+.theme-octopus .hover\:bg-slate-600:hover,
+.theme-octopus [class*='hover:bg-slate-700']:hover,
+.theme-octopus [class*='hover:bg-slate-600']:hover,
+html.theme-octopus [class*='hover:bg-slate-700']:hover,
+html.theme-octopus [class*='hover:bg-slate-600']:hover {
+  background-color: rgba(70, 85, 130, 0.45) !important;
+}
+
+/* Sidebar icon-only buttons (hamburger, close): no default bg in markup, give theme tint */
+html.theme-octopus aside button.rounded-lg[class*='p-2']:not([class*='px-4']):not([class*='bg-blue']) {
+  background-color: rgba(55, 65, 105, 0.35) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .theme-octopus .text-slate-800,
@@ -401,10 +453,16 @@ html[data-font="nunito"] {
   color: #BCAEDB !important;
 }
 
+/* Orange outlines instead of purple */
 .theme-octopus .border-slate-200,
 .theme-octopus .border-slate-300,
-.theme-octopus .border-slate-700 {
-  border-color: #8A2BE2 !important;
+.theme-octopus .border-slate-600,
+.theme-octopus .border-slate-700,
+.theme-octopus [class*='border-slate-200'],
+.theme-octopus [class*='border-slate-300'],
+.theme-octopus [class*='border-slate-600'],
+.theme-octopus [class*='border-slate-700'] {
+  border-color: #d97634 !important;
 }
 
 .theme-octopus .bg-blue-600 {
@@ -425,13 +483,41 @@ html[data-font="nunito"] {
 }
 
 .theme-octopus input:focus {
-  border-color: #3EF8A8 !important;
-  box-shadow: 0 0 15px rgba(62, 248, 168, 0.3);
+  border-color: #d97634 !important;
+  box-shadow: 0 0 0 2px rgba(217, 118, 52, 0.35);
 }
 
 .theme-octopus .border-slate-200:focus,
-.theme-octopus .border-slate-300:focus {
-  border-color: #00FFC6 !important;
+.theme-octopus .border-slate-300:focus,
+.theme-octopus [class*='border-slate-200']:focus,
+.theme-octopus [class*='border-slate-300']:focus {
+  border-color: #d97634 !important;
+}
+
+/* Focus rings orange to match outlines */
+.theme-octopus button:focus,
+.theme-octopus a:focus,
+.theme-octopus [role='button']:focus {
+  --tw-ring-color: rgba(217, 118, 52, 0.5);
+}
+.theme-octopus [class*='focus:ring-blue']:focus {
+  --tw-ring-color: rgba(217, 118, 52, 0.5) !important;
+}
+
+/* Octopus theme: floating bubbles animation */
+@keyframes octopus-bubble-float {
+  from {
+    transform: translateY(0) translateX(0);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(-100vh) translateX(15px);
+    opacity: 0.1;
+  }
+}
+
+.reduce-motion .octopus-bubble-float {
+  animation: none !important;
 }
 
 /* Pip-Boy theme - Fallout 4 CRT green-tinted retro terminal */
@@ -610,6 +696,91 @@ html[data-font="nunito"] {
 
 .theme-lofi .shadow-xl {
   box-shadow: 0 20px 25px -5px rgba(242, 159, 103, 0.2), 0 8px 10px -6px rgba(242, 159, 103, 0.15);
+}
+
+/* Toast notifications: theme-adjacent styling */
+html.theme-light [data-toast] {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.theme-octopus [data-toast] {
+  background-color: rgba(45, 55, 95, 0.92) !important;
+  border: 1px solid #d97634;
+  color: #EDE6FF !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(217, 118, 52, 0.15);
+}
+.theme-octopus [data-toast][data-toast-variant="success"] {
+  border-color: #3EF8A8;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 12px rgba(62, 248, 168, 0.25);
+}
+.theme-octopus [data-toast] button:hover {
+  background-color: rgba(217, 118, 52, 0.3) !important;
+  color: #3EF8A8 !important;
+}
+
+.theme-cyberpunk [data-toast] {
+  background-color: rgba(11, 13, 19, 0.95) !important;
+  border: 1px solid #00F0FF;
+  color: #F2F6FF !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.15);
+}
+.theme-cyberpunk [data-toast][data-toast-variant="success"] {
+  border-color: #FF00D4;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 0, 212, 0.2);
+}
+.theme-cyberpunk [data-toast][data-toast-variant="error"] {
+  border-color: #F5FF3D;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(245, 255, 61, 0.2);
+}
+.theme-cyberpunk [data-toast] button:hover {
+  background-color: rgba(0, 240, 255, 0.2) !important;
+}
+
+.theme-pipboy [data-toast] {
+  background-color: rgba(10, 15, 10, 0.95) !important;
+  border: 1px solid #14FF00;
+  color: #A6FFA0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(20, 255, 0, 0.2);
+}
+.theme-pipboy [data-toast][data-toast-variant="success"] {
+  border-color: #38E32D;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 18px rgba(56, 227, 45, 0.3);
+}
+.theme-pipboy [data-toast] button:hover {
+  background-color: rgba(20, 255, 0, 0.2) !important;
+  color: #14FF00 !important;
+}
+
+.theme-lofi [data-toast] {
+  background-color: rgba(42, 31, 26, 0.95) !important;
+  border: 1px solid #A55F3B;
+  color: #F6EDE7 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(242, 159, 103, 0.12);
+}
+.theme-lofi [data-toast][data-toast-variant="success"] {
+  border-color: #F29F67;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(242, 159, 103, 0.25);
+}
+.theme-lofi [data-toast] button:hover {
+  background-color: rgba(242, 159, 103, 0.25) !important;
+  color: #FFD7BA !important;
+}
+
+/* Vanilla dark theme only (theme-dark, not octopus/cyberpunk/pipboy/lofi) */
+html.theme-dark [data-toast] {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  border: 1px solid #475569;
+  color: #f1f5f9 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+html.theme-dark [data-toast][data-toast-variant="success"] {
+  border-color: #22c55e;
+}
+html.theme-dark [data-toast] button:hover {
+  background-color: rgba(71, 85, 105, 0.4) !important;
 }
 
 /* Flashcard background gradient */

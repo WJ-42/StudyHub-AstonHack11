@@ -168,7 +168,7 @@ export function WorkspaceView() {
   const hasTabs = openTabIds.length > 0
 
   return (
-    <div className="flex h-full gap-4">
+    <div className="flex h-full min-h-0 gap-4">
       <aside className="flex w-64 flex-col rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800" style={{ height: '85vh' }}>
         <div className="border-b border-slate-200 p-2 font-medium text-center text-slate-800 dark:border-slate-700 dark:text-slate-100">
           Files &amp; folders

@@ -1,11 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { OctopusThemeEffects } from '@/components/OctopusThemeEffects'
 import { Landing } from '@/routes/Landing'
 import { AppLayout, AppLayoutRedirect } from '@/routes/AppLayout'
 import { SectionView } from '@/routes/SectionView'
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <OctopusThemeEffects />
+      <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/app" element={<AppLayout />}>
         <Route index element={<AppLayoutRedirect />} />
@@ -14,5 +17,6 @@ export default function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }
