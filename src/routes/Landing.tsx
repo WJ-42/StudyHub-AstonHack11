@@ -102,7 +102,7 @@ export function Landing() {
   }
 
   return (
-    <div className={`min-h-screen ${theme === 'octopus' ? 'bg-transparent' : 'bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800'}`}>
+    <div className={`min-h-screen ${theme === 'octopus' || theme === 'pipboy' ? 'bg-transparent' : 'bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800'}`}>
       <div className="mx-auto max-w-5xl px-4 py-16 sm:py-24">
         {/* Intro section - fades in on load */}
         <section className="animate-landing-intro text-center">

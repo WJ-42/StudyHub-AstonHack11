@@ -384,6 +384,11 @@ html[data-font="nunito"] {
   background: transparent !important;
 }
 
+/* Let the Pip-Boy background show through the main app layout */
+.theme-pipboy [data-app-layout] {
+  background: transparent !important;
+}
+
 /* Translucent ocean/coral-reef panels – use html for higher specificity over Tailwind dark: */
 .theme-octopus .bg-slate-50,
 .theme-octopus .bg-slate-100,
