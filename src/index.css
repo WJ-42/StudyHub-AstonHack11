@@ -379,13 +379,13 @@ html[data-font="nunito"] {
   background-repeat: no-repeat;
 }
 
-/* Let the ocean floor show through the main app layout */
-.theme-octopus [data-app-layout] {
-  background: transparent !important;
-}
-
-/* Let the Pip-Boy background show through the main app layout */
-.theme-pipboy [data-app-layout] {
+/* Let custom theme backgrounds show through the main app layout */
+.theme-octopus [data-app-layout],
+.theme-pipboy [data-app-layout],
+.theme-cyberpunk [data-app-layout],
+.theme-lofi [data-app-layout],
+.theme-dark [data-app-layout],
+.dark [data-app-layout] {
   background: transparent !important;
 }
 
