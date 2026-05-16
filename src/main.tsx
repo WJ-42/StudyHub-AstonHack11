@@ -1,28 +1,19 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { SettingsProvider } from '@/contexts/SettingsContext'
-import { ToastProvider } from '@/contexts/ToastContext'
-import { SearchProvider } from '@/contexts/SearchContext'
-import { MediaProvider } from '@/contexts/MediaContext'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
+import App from './App.tsx'
+import { AuthProvider } from './contexts/AuthContext.tsx'
+import { SettingsProvider } from './contexts/SettingsContext.tsx'
 import './index.css'
-import App from './App'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
       <SettingsProvider>
-        <ToastProvider>
-          <SearchProvider>
-            <MediaProvider>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
-            </MediaProvider>
-          </SearchProvider>
-        </ToastProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </SettingsProvider>
-    </ErrorBoundary>
-  </StrictMode>,
+    </BrowserRouter>
+  </React.StrictMode>,
 )
