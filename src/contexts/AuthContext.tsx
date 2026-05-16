@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { login as apiLogin, register as apiRegister, logout as apiLogout, AuthResponse } from '../api/auth';
-import { fetchDecks, fetchNotes, syncToCloud } from '../api/sync';
-import { getToken } from '../api/client';
+import { fetchDecks, fetchNotes } from '../api/sync';
+import { setLoggedIn, logout as sessionLogout } from '../store/session';
 
 interface AuthUser {
   email: string;
@@ -27,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleAuthSuccess = useCallback(async (response: AuthResponse) => {
     setUser({ email: response.email, displayName: response.displayName });
+    setLoggedIn(true);
     try {
       const [decks, notes] = await Promise.all([fetchDecks(), fetchNotes()]);
       console.log(`Synced ${decks.length} decks and ${notes.length} notes from cloud`);
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     apiLogout();
+    sessionLogout();
     setUser(null);
     setError(null);
   }, []);

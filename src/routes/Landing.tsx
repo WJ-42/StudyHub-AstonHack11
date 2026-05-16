@@ -4,6 +4,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { OctopusIcon } from '@/components/OctopusIcon';
 import { THEMES, type Theme } from '@/store/storage';
 import { useAuth } from '@/contexts/AuthContext';
+import { setLoggedIn } from '@/store/session';
 
 const FEATURES = [
   {
@@ -237,6 +238,7 @@ export function Landing() {
   }, [isLoggedIn, navigate]);
 
   const handleGuest = () => {
+    setLoggedIn(true);
     navigate('/app');
   };
 

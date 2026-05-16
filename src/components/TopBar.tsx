@@ -1,17 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
-import { logout, getUserName } from '@/store/session'
 import { getAvatar } from '@/store/storage'
 import { useSearch } from '@/contexts/SearchContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import { useSettings } from '@/contexts/SettingsContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { ProfileModal } from '@/components/profile/ProfileModal'
 import { OctopusIcon } from '@/components/OctopusIcon'
 
 export function TopBar() {
   const navigate = useNavigate()
-  const name = getUserName()
+  const { user, logout } = useAuth()
+  const name = user?.displayName ?? null
   const { query, setQuery } = useSearch()
   const { setMobileMenuOpen } = useLayout()
   const { theme } = useSettings()
@@ -94,7 +95,7 @@ export function TopBar() {
                 {(name || 'U').charAt(0).toUpperCase()}
               </span>
             )}
-            <span className="hidden text-sm text-slate-700 dark:text-slate-300 sm:inline">{name || 'User'}</span>
+            <span className="hidden text-sm text-slate-700 dark:text-slate-300 sm:inline">{name || 'Guest'}</span>
           </button>
           {userMenuOpen && dropdownRect && createPortal(
             <div
