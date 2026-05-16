@@ -11,8 +11,144 @@ import {
   type Flashcard,
 } from '@/store/study'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { generateFlashcards, type FlashcardPair } from '@/api/ai'
+import { useAuth } from '@/contexts/AuthContext'
+
+function AIGenerateModal({
+  deckName,
+  onClose,
+  onAdd,
+}: {
+  deckName: string
+  onClose: () => void
+  onAdd: (pairs: FlashcardPair[]) => void
+}) {
+  const [text, setText] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [pairs, setPairs] = useState<FlashcardPair[]>([])
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [error, setError] = useState<string | null>(null)
+  const [step, setStep] = useState<'input' | 'preview'>('input')
+
+  const handleGenerate = async () => {
+    if (!text.trim()) return
+    setGenerating(true)
+    setError(null)
+    try {
+      const result = await generateFlashcards(text.trim())
+      setPairs(result)
+      setSelected(new Set(result.map((_, i) => i)))
+      setStep('preview')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate flashcards')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const toggleCard = (i: number) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="relative w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+        >
+          ✕
+        </button>
+
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          Generate flashcards with AI
+        </h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          {step === 'input'
+            ? `Cards will be added to "${deckName}"`
+            : `${pairs.length} cards generated. Select which ones to add to "${deckName}".`}
+        </p>
+
+        {step === 'input' && (
+          <>
+            <textarea
+              className="mt-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+              rows={8}
+              placeholder="Paste your notes or study material here..."
+              value={text}
+              onChange={e => setText(e.target.value)}
+            />
+            {error && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+            )}
+            <button
+              type="button"
+              disabled={!text.trim() || generating}
+              onClick={handleGenerate}
+              className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {generating ? 'Generating...' : 'Generate'}
+            </button>
+          </>
+        )}
+
+        {step === 'preview' && (
+          <>
+            <div className="mt-4 max-h-64 overflow-y-auto space-y-2">
+              {pairs.map((pair, i) => (
+                <label
+                  key={i}
+                  className="flex items-start gap-3 cursor-pointer rounded-lg border border-slate-200 p-3 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(i)}
+                    onChange={() => toggleCard(i)}
+                    className="mt-0.5 shrink-0"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {pair.front}
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {pair.back}
+                    </p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setStep('input')}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm dark:border-slate-600"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                disabled={selected.size === 0}
+                onClick={() => onAdd(pairs.filter((_, i) => selected.has(i)))}
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Add {selected.size} card{selected.size !== 1 ? 's' : ''} to deck
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export function Flashcards() {
+  const { isLoggedIn } = useAuth()
   const [decks, setDecks] = useState<FlashcardDeck[]>([])
   const [cards, setCards] = useState<Flashcard[]>([])
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null)
@@ -27,6 +163,7 @@ export function Flashcards() {
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
   const [editFront, setEditFront] = useState('')
   const [editBack, setEditBack] = useState('')
+  const [aiModalOpen, setAiModalOpen] = useState(false)
 
   const loadDecks = useCallback(async () => {
     const d = await getDecks()
@@ -54,9 +191,8 @@ export function Flashcards() {
   }, [mode, cards.length])
 
   const selectedDeck = decks.find((d) => d.id === selectedDeckId)
-  const studyCards = mode === 'study' && cards.length > 0
-    ? shuffledOrder.map((i) => cards[i])
-    : []
+  const studyCards =
+    mode === 'study' && cards.length > 0 ? shuffledOrder.map((i) => cards[i]) : []
   const currentCard = studyCards[studyIndex]
 
   const handleCreateDeck = async () => {
@@ -129,14 +265,36 @@ export function Flashcards() {
     setEditBack('')
   }
 
+  const handleAddAICards = async (pairs: FlashcardPair[]) => {
+    if (!selectedDeckId) return
+    for (const pair of pairs) {
+      const card: Flashcard = {
+        id: generateId(),
+        deckId: selectedDeckId,
+        front: pair.front,
+        back: pair.back,
+      }
+      await saveCard(card)
+    }
+    const updated = await getCards(selectedDeckId)
+    setCards(updated)
+    setAiModalOpen(false)
+  }
+
   if (mode === 'study' && currentCard) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="mb-4 flex items-center justify-between">
-          <button type="button" className="text-sm text-blue-600 dark:text-blue-400" onClick={() => setMode('list')}>
+          <button
+            type="button"
+            className="text-sm text-blue-600 dark:text-blue-400"
+            onClick={() => setMode('list')}
+          >
             ← Back to decks
           </button>
-          <span className="text-sm text-slate-500">{studyIndex + 1} / {studyCards.length}</span>
+          <span className="text-sm text-slate-500">
+            {studyIndex + 1} / {studyCards.length}
+          </span>
         </div>
         <div
           className="min-h-[200px] cursor-pointer select-none rounded-lg border-2 border-border-default bg-flashcard p-6"
@@ -152,14 +310,19 @@ export function Flashcards() {
           <p className="text-lg text-text-primary">
             {flipped ? currentCard.back : currentCard.front}
           </p>
-          <p className="mt-2 text-xs text-text-muted">{flipped ? 'Back' : 'Front'} (click to flip)</p>
+          <p className="mt-2 text-xs text-text-muted">
+            {flipped ? 'Back' : 'Front'} (click to flip)
+          </p>
         </div>
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             className="rounded-lg border border-slate-300 px-4 py-2 disabled:opacity-50 dark:border-slate-600"
             disabled={studyIndex === 0}
-            onClick={() => { setStudyIndex((i) => i - 1); setFlipped(false) }}
+            onClick={() => {
+              setStudyIndex((i) => i - 1)
+              setFlipped(false)
+            }}
           >
             Previous
           </button>
@@ -167,7 +330,10 @@ export function Flashcards() {
             type="button"
             className="rounded-lg border border-slate-300 px-4 py-2 disabled:opacity-50 dark:border-slate-600"
             disabled={studyIndex === studyCards.length - 1}
-            onClick={() => { setStudyIndex((i) => i + 1); setFlipped(false) }}
+            onClick={() => {
+              setStudyIndex((i) => i + 1)
+              setFlipped(false)
+            }}
           >
             Next
           </button>
@@ -179,7 +345,8 @@ export function Flashcards() {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Flashcards</h3>
-      <div className="mt-4 flex gap-2">
+
+      <div className="mt-4 flex flex-wrap gap-2">
         <input
           type="text"
           placeholder="New deck name"
@@ -188,10 +355,34 @@ export function Flashcards() {
           className="rounded border border-slate-300 px-3 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           aria-label="New deck name"
         />
-        <button type="button" className="rounded bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700" onClick={handleCreateDeck}>
+        <button
+          type="button"
+          className="rounded bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700"
+          onClick={handleCreateDeck}
+        >
           Create deck
         </button>
+        {isLoggedIn && selectedDeck && (
+          <button
+            type="button"
+            className="rounded bg-purple-600 px-3 py-1.5 text-white hover:bg-purple-700"
+            onClick={() => setAiModalOpen(true)}
+          >
+            Generate with AI
+          </button>
+        )}
+        {isLoggedIn && !selectedDeck && decks.length > 0 && (
+          <span className="self-center text-xs text-slate-400">
+            Select a deck to use AI generation
+          </span>
+        )}
+        {!isLoggedIn && (
+          <span className="self-center text-xs text-slate-400">
+            Login to use AI generation
+          </span>
+        )}
       </div>
+
       <div className="mt-4 flex gap-4">
         <div className="min-w-[200px]">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Decks</p>
@@ -200,30 +391,56 @@ export function Flashcards() {
               <li key={d.id} className="flex items-center justify-between gap-2">
                 <button
                   type="button"
-                  className={`truncate text-left text-sm ${selectedDeckId === d.id ? 'font-medium text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}
+                  className={`truncate text-left text-sm ${
+                    selectedDeckId === d.id
+                      ? 'font-medium text-blue-600 dark:text-blue-400'
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}
                   onClick={() => setSelectedDeckId(d.id)}
                 >
                   {d.name}
                 </button>
-                <button type="button" className="text-red-600 hover:underline" onClick={() => handleDeleteDeckClick(d.id)} aria-label="Delete deck">×</button>
+                <button
+                  type="button"
+                  className="text-red-600 hover:underline"
+                  onClick={() => handleDeleteDeckClick(d.id)}
+                  aria-label="Delete deck"
+                >
+                  ×
+                </button>
               </li>
             ))}
           </ul>
         </div>
+
         <div className="flex-1">
           {selectedDeck && (
             <>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{selectedDeck.name}</p>
-                <button
-                  type="button"
-                  className="rounded bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
-                  disabled={cards.length === 0}
-                  onClick={() => setMode('study')}
-                >
-                  Study {cards.length > 0 && `(${cards.length})`}
-                </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {selectedDeck.name}
+                </p>
+                <div className="ml-auto flex gap-2">
+                  {isLoggedIn && (
+                    <button
+                      type="button"
+                      className="rounded bg-purple-600 px-3 py-1.5 text-sm text-white hover:bg-purple-700"
+                      onClick={() => setAiModalOpen(true)}
+                    >
+                      Generate with AI
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="rounded bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+                    disabled={cards.length === 0}
+                    onClick={() => setMode('study')}
+                  >
+                    Study {cards.length > 0 && `(${cards.length})`}
+                  </button>
+                </div>
               </div>
+
               <div className="mt-2 flex gap-2">
                 <input
                   type="text"
@@ -241,11 +458,21 @@ export function Flashcards() {
                   className="flex-1 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
                   aria-label="Card back"
                 />
-                <button type="button" className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700" onClick={handleAddCard}>Add card</button>
+                <button
+                  type="button"
+                  className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+                  onClick={handleAddCard}
+                >
+                  Add card
+                </button>
               </div>
+
               <ul className="mt-4 space-y-2">
                 {cards.map((c) => (
-                  <li key={c.id} className="rounded border border-slate-200 p-2 dark:border-slate-600">
+                  <li
+                    key={c.id}
+                    className="rounded border border-slate-200 p-2 dark:border-slate-600"
+                  >
                     {editingCardId === c.id ? (
                       <div className="space-y-2">
                         <input
@@ -263,22 +490,51 @@ export function Flashcards() {
                           placeholder="Back"
                         />
                         <div className="flex gap-2">
-                          <button type="button" className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700" onClick={handleSaveEdit}>Save</button>
-                          <button type="button" className="rounded border border-slate-300 px-3 py-1 text-sm dark:border-slate-600" onClick={handleCancelEdit}>Cancel</button>
+                          <button
+                            type="button"
+                            className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
+                            onClick={handleSaveEdit}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded border border-slate-300 px-3 py-1 text-sm dark:border-slate-600"
+                            onClick={handleCancelEdit}
+                          >
+                            Cancel
+                          </button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-700 dark:text-slate-300">{c.front} → {c.back}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300">
+                          {c.front} → {c.back}
+                        </span>
                         <div className="flex gap-2">
-                          <button type="button" className="text-blue-600 hover:underline dark:text-blue-400" onClick={() => handleEditCard(c)} aria-label="Edit card">Edit</button>
-                          <button type="button" className="text-red-600 hover:underline" onClick={() => handleDeleteCard(c.id)} aria-label="Delete card">Delete</button>
+                          <button
+                            type="button"
+                            className="text-blue-600 hover:underline dark:text-blue-400"
+                            onClick={() => handleEditCard(c)}
+                            aria-label="Edit card"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="text-red-600 hover:underline"
+                            onClick={() => handleDeleteCard(c.id)}
+                            aria-label="Delete card"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
                     )}
                   </li>
                 ))}
               </ul>
+
               {cards.length === 0 && (
                 <p className="mt-4 text-sm text-slate-500">No cards yet. Add a card above.</p>
               )}
@@ -292,6 +548,14 @@ export function Flashcards() {
           )}
         </div>
       </div>
+
+      {aiModalOpen && selectedDeck && (
+        <AIGenerateModal
+          deckName={selectedDeck.name}
+          onClose={() => setAiModalOpen(false)}
+          onAdd={handleAddAICards}
+        />
+      )}
 
       <ConfirmModal
         open={pendingDeleteDeckId !== null}
