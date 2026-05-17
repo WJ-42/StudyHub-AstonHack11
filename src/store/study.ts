@@ -31,10 +31,29 @@ export interface Flashcard {
   back: string
 }
 
+// Each entry is { front, back } where front is the card front background
+// and back is the card back background. Both use white text.
+export const DECK_COLOR_PALETTE: { front: string; back: string }[] = [
+  { front: '#6366f1', back: '#4338ca' },  // indigo
+  { front: '#10b981', back: '#065f46' },  // emerald
+  { front: '#f43f5e', back: '#9f1239' },  // rose
+  { front: '#f59e0b', back: '#92400e' },  // amber
+  { front: '#8b5cf6', back: '#5b21b6' },  // violet
+  { front: '#06b6d4', back: '#164e63' },  // cyan
+  { front: '#ec4899', back: '#9d174d' },  // pink
+  { front: '#3b82f6', back: '#1e3a8a' },  // blue
+]
+
+export function getDeckColor(colorIndex?: number): { front: string; back: string } {
+  const idx = colorIndex ?? 0
+  return DECK_COLOR_PALETTE[idx % DECK_COLOR_PALETTE.length]
+}
+
 export interface FlashcardDeck {
   id: string
   name: string
   createdAt: number
+  colorIndex?: number  // index into DECK_COLOR_PALETTE, optional for backward compat
 }
 
 const POMODORO_DEFAULTS: PomodoroState = {

@@ -7,6 +7,8 @@ import {
   deleteDeck,
   deleteCard,
   generateId,
+  getDeckColor,
+  DECK_COLOR_PALETTE,
   type FlashcardDeck,
   type Flashcard,
 } from '@/store/study'
@@ -195,9 +197,14 @@ export function Flashcards() {
     mode === 'study' && cards.length > 0 ? shuffledOrder.map((i) => cards[i]) : []
   const currentCard = studyCards[studyIndex]
 
+  // Resolve the color pair for whichever deck is currently selected
+  const deckColors = getDeckColor(selectedDeck?.colorIndex)
+
   const handleCreateDeck = async () => {
     const name = newDeckName.trim() || 'New deck'
-    const deck: FlashcardDeck = { id: generateId(), name, createdAt: Date.now() }
+    // Assign the next color in the palette by cycling through based on how many decks exist
+    const colorIndex = decks.length % DECK_COLOR_PALETTE.length
+    const deck: FlashcardDeck = { id: generateId(), name, createdAt: Date.now(), colorIndex }
     await saveDeck(deck)
     setNewDeckName('')
     await loadDecks()
@@ -281,6 +288,7 @@ export function Flashcards() {
     setAiModalOpen(false)
   }
 
+  // Study mode: full-screen card with deck colors
   if (mode === 'study' && currentCard) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
@@ -297,9 +305,11 @@ export function Flashcards() {
           </span>
         </div>
         <div
-          className="min-h-[200px] cursor-pointer select-none rounded-lg border-2 border-border-default bg-flashcard p-6"
+          className="min-h-[200px] cursor-pointer select-none rounded-xl p-6 shadow-md transition-colors duration-300"
+          style={{ backgroundColor: flipped ? deckColors.back : deckColors.front }}
           onClick={() => setFlipped((f) => !f)}
           role="button"
+          tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
@@ -307,11 +317,11 @@ export function Flashcards() {
             }
           }}
         >
-          <p className="text-lg text-text-primary">
+          <p className="text-lg font-medium text-white">
             {flipped ? currentCard.back : currentCard.front}
           </p>
-          <p className="mt-2 text-xs text-text-muted">
-            {flipped ? 'Back' : 'Front'} (click to flip)
+          <p className="mt-2 text-xs text-white/60">
+            {flipped ? 'Back' : 'Front'} — click to flip
           </p>
         </div>
         <div className="mt-4 flex gap-2">
@@ -352,6 +362,7 @@ export function Flashcards() {
           placeholder="New deck name"
           value={newDeckName}
           onChange={(e) => setNewDeckName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleCreateDeck() }}
           className="rounded border border-slate-300 px-3 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           aria-label="New deck name"
         />
@@ -387,29 +398,37 @@ export function Flashcards() {
         <div className="min-w-[200px]">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Decks</p>
           <ul className="mt-2 space-y-1">
-            {decks.map((d) => (
-              <li key={d.id} className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  className={`truncate text-left text-sm ${
-                    selectedDeckId === d.id
-                      ? 'font-medium text-blue-600 dark:text-blue-400'
-                      : 'text-slate-700 dark:text-slate-300'
-                  }`}
-                  onClick={() => setSelectedDeckId(d.id)}
-                >
-                  {d.name}
-                </button>
-                <button
-                  type="button"
-                  className="text-red-600 hover:underline"
-                  onClick={() => handleDeleteDeckClick(d.id)}
-                  aria-label="Delete deck"
-                >
-                  ×
-                </button>
-              </li>
-            ))}
+            {decks.map((d) => {
+              const colors = getDeckColor(d.colorIndex)
+              return (
+                <li key={d.id} className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    className={`flex min-w-0 items-center gap-2 truncate text-left text-sm ${
+                      selectedDeckId === d.id
+                        ? 'font-medium text-slate-800 dark:text-slate-100'
+                        : 'text-slate-700 dark:text-slate-300'
+                    }`}
+                    onClick={() => setSelectedDeckId(d.id)}
+                  >
+                    {/* Colored dot indicating this deck's assigned color */}
+                    <span
+                      className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                      style={{ backgroundColor: colors.front }}
+                    />
+                    <span className="truncate">{d.name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="text-red-600 hover:underline"
+                    onClick={() => handleDeleteDeckClick(d.id)}
+                    aria-label="Delete deck"
+                  >
+                    ×
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         </div>
 
@@ -417,9 +436,24 @@ export function Flashcards() {
           {selectedDeck && (
             <>
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  {selectedDeck.name}
-                </p>
+                <div className="flex items-center gap-2">
+                  {/* Color swatch showing this deck's front/back colors */}
+                  <div className="flex gap-1">
+                    <span
+                      className="inline-block h-4 w-4 rounded-sm"
+                      style={{ backgroundColor: deckColors.front }}
+                      title="Front color"
+                    />
+                    <span
+                      className="inline-block h-4 w-4 rounded-sm"
+                      style={{ backgroundColor: deckColors.back }}
+                      title="Back color"
+                    />
+                  </div>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {selectedDeck.name}
+                  </p>
+                </div>
                 <div className="ml-auto flex gap-2">
                   {isLoggedIn && (
                     <button
@@ -472,6 +506,7 @@ export function Flashcards() {
                   <li
                     key={c.id}
                     className="rounded border border-slate-200 p-2 dark:border-slate-600"
+                    style={{ borderLeftColor: deckColors.front, borderLeftWidth: 3 }}
                   >
                     {editingCardId === c.id ? (
                       <div className="space-y-2">
