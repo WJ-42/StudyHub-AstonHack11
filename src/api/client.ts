@@ -29,8 +29,19 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || `Request failed with status ${response.status}`);
+    const text = await response.text();
+    // Try to pull a human-readable message out of a JSON error body.
+    // The backend returns { "error": "..." } for all handled exceptions.
+    let message = `Request failed with status ${response.status}`;
+    if (text) {
+      try {
+        const json = JSON.parse(text);
+        message = json.error || json.message || text;
+      } catch {
+        message = text;
+      }
+    }
+    throw new Error(message);
   }
 
   const text = await response.text();
