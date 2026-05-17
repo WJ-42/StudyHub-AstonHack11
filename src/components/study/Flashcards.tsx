@@ -421,11 +421,7 @@ export function Flashcards() {
           )}
         </div>
 
-        {/* Color picker shown while typing a new deck name */}
-        <div className="space-y-1">
-          <p className="text-xs text-slate-500 dark:text-slate-400">Deck color</p>
-          <ColorPicker value={newDeckColorIndex} onChange={setNewDeckColorIndex} />
-        </div>
+
       </div>
 
       <div className="mt-4 flex gap-4">
