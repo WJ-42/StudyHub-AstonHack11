@@ -16,6 +16,38 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { generateFlashcards, type FlashcardPair } from '@/api/ai'
 import { useAuth } from '@/contexts/AuthContext'
 
+// Renders a row of color swatches from the palette.
+// Each swatch is two side-by-side squares showing the front and back colors.
+// The currently selected index gets a ring highlight.
+function ColorPicker({
+  value,
+  onChange,
+}: {
+  value: number
+  onChange: (index: number) => void
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {DECK_COLOR_PALETTE.map((colors, i) => (
+        <button
+          key={i}
+          type="button"
+          title={`Color option ${i + 1}`}
+          onClick={() => onChange(i)}
+          className={`flex overflow-hidden rounded transition-transform hover:scale-110 ${
+            value === i
+              ? 'ring-2 ring-offset-1 ring-slate-700 dark:ring-white scale-110'
+              : ''
+          }`}
+        >
+          <span className="block h-5 w-5" style={{ backgroundColor: colors.front }} />
+          <span className="block h-5 w-5" style={{ backgroundColor: colors.back }} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function AIGenerateModal({
   deckName,
   onClose,
@@ -67,7 +99,6 @@ function AIGenerateModal({
         >
           ✕
         </button>
-
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Generate flashcards with AI
         </h2>
@@ -76,7 +107,6 @@ function AIGenerateModal({
             ? `Cards will be added to "${deckName}"`
             : `${pairs.length} cards generated. Select which ones to add to "${deckName}".`}
         </p>
-
         {step === 'input' && (
           <>
             <textarea
@@ -99,7 +129,6 @@ function AIGenerateModal({
             </button>
           </>
         )}
-
         {step === 'preview' && (
           <>
             <div className="mt-4 max-h-64 overflow-y-auto space-y-2">
@@ -159,6 +188,7 @@ export function Flashcards() {
   const [flipped, setFlipped] = useState(false)
   const [shuffledOrder, setShuffledOrder] = useState<number[]>([])
   const [newDeckName, setNewDeckName] = useState('')
+  const [newDeckColorIndex, setNewDeckColorIndex] = useState(0)
   const [newCardFront, setNewCardFront] = useState('')
   const [newCardBack, setNewCardBack] = useState('')
   const [pendingDeleteDeckId, setPendingDeleteDeckId] = useState<string | null>(null)
@@ -166,10 +196,14 @@ export function Flashcards() {
   const [editFront, setEditFront] = useState('')
   const [editBack, setEditBack] = useState('')
   const [aiModalOpen, setAiModalOpen] = useState(false)
+  // Which deck is currently showing its inline color picker
+  const [colorPickerDeckId, setColorPickerDeckId] = useState<string | null>(null)
 
   const loadDecks = useCallback(async () => {
     const d = await getDecks()
     setDecks(d)
+    // Keep the new deck color picker in sync with the next auto-assigned slot
+    setNewDeckColorIndex(d.length % DECK_COLOR_PALETTE.length)
   }, [])
 
   useEffect(() => {
@@ -196,19 +230,28 @@ export function Flashcards() {
   const studyCards =
     mode === 'study' && cards.length > 0 ? shuffledOrder.map((i) => cards[i]) : []
   const currentCard = studyCards[studyIndex]
-
-  // Resolve the color pair for whichever deck is currently selected
   const deckColors = getDeckColor(selectedDeck?.colorIndex)
 
   const handleCreateDeck = async () => {
     const name = newDeckName.trim() || 'New deck'
-    // Assign the next color in the palette by cycling through based on how many decks exist
-    const colorIndex = decks.length % DECK_COLOR_PALETTE.length
-    const deck: FlashcardDeck = { id: generateId(), name, createdAt: Date.now(), colorIndex }
+    const deck: FlashcardDeck = {
+      id: generateId(),
+      name,
+      createdAt: Date.now(),
+      colorIndex: newDeckColorIndex,
+    }
     await saveDeck(deck)
     setNewDeckName('')
     await loadDecks()
     setSelectedDeckId(deck.id)
+  }
+
+  const handleChangeDeckColor = async (deckId: string, colorIndex: number) => {
+    const deck = decks.find((d) => d.id === deckId)
+    if (!deck) return
+    await saveDeck({ ...deck, colorIndex })
+    setColorPickerDeckId(null)
+    await loadDecks()
   }
 
   const handleAddCard = async () => {
@@ -226,9 +269,7 @@ export function Flashcards() {
     setCards(updated)
   }
 
-  const handleDeleteDeckClick = (id: string) => {
-    setPendingDeleteDeckId(id)
-  }
+  const handleDeleteDeckClick = (id: string) => setPendingDeleteDeckId(id)
 
   const handleDeleteDeckConfirm = async () => {
     const id = pendingDeleteDeckId
@@ -275,20 +316,14 @@ export function Flashcards() {
   const handleAddAICards = async (pairs: FlashcardPair[]) => {
     if (!selectedDeckId) return
     for (const pair of pairs) {
-      const card: Flashcard = {
-        id: generateId(),
-        deckId: selectedDeckId,
-        front: pair.front,
-        back: pair.back,
-      }
-      await saveCard(card)
+      await saveCard({ id: generateId(), deckId: selectedDeckId, front: pair.front, back: pair.back })
     }
     const updated = await getCards(selectedDeckId)
     setCards(updated)
     setAiModalOpen(false)
   }
 
-  // Study mode: full-screen card with deck colors
+  // Study mode
   if (mode === 'study' && currentCard) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
@@ -329,10 +364,7 @@ export function Flashcards() {
             type="button"
             className="rounded-lg border border-slate-300 px-4 py-2 disabled:opacity-50 dark:border-slate-600"
             disabled={studyIndex === 0}
-            onClick={() => {
-              setStudyIndex((i) => i - 1)
-              setFlipped(false)
-            }}
+            onClick={() => { setStudyIndex((i) => i - 1); setFlipped(false) }}
           >
             Previous
           </button>
@@ -340,10 +372,7 @@ export function Flashcards() {
             type="button"
             className="rounded-lg border border-slate-300 px-4 py-2 disabled:opacity-50 dark:border-slate-600"
             disabled={studyIndex === studyCards.length - 1}
-            onClick={() => {
-              setStudyIndex((i) => i + 1)
-              setFlipped(false)
-            }}
+            onClick={() => { setStudyIndex((i) => i + 1); setFlipped(false) }}
           >
             Next
           </button>
@@ -356,99 +385,121 @@ export function Flashcards() {
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Flashcards</h3>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <input
-          type="text"
-          placeholder="New deck name"
-          value={newDeckName}
-          onChange={(e) => setNewDeckName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleCreateDeck() }}
-          className="rounded border border-slate-300 px-3 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-          aria-label="New deck name"
-        />
-        <button
-          type="button"
-          className="rounded bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700"
-          onClick={handleCreateDeck}
-        >
-          Create deck
-        </button>
-        {isLoggedIn && selectedDeck && (
+      {/* Create deck row */}
+      <div className="mt-4 space-y-2">
+        <div className="flex flex-wrap gap-2">
+          <input
+            type="text"
+            placeholder="New deck name"
+            value={newDeckName}
+            onChange={(e) => setNewDeckName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCreateDeck() }}
+            className="rounded border border-slate-300 px-3 py-1.5 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+            aria-label="New deck name"
+          />
           <button
             type="button"
-            className="rounded bg-purple-600 px-3 py-1.5 text-white hover:bg-purple-700"
-            onClick={() => setAiModalOpen(true)}
+            className="rounded bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700"
+            onClick={handleCreateDeck}
           >
-            Generate with AI
+            Create deck
           </button>
-        )}
-        {isLoggedIn && !selectedDeck && decks.length > 0 && (
-          <span className="self-center text-xs text-slate-400">
-            Select a deck to use AI generation
-          </span>
-        )}
-        {!isLoggedIn && (
-          <span className="self-center text-xs text-slate-400">
-            Login to use AI generation
-          </span>
-        )}
+          {isLoggedIn && selectedDeck && (
+            <button
+              type="button"
+              className="rounded bg-purple-600 px-3 py-1.5 text-white hover:bg-purple-700"
+              onClick={() => setAiModalOpen(true)}
+            >
+              Generate with AI
+            </button>
+          )}
+          {isLoggedIn && !selectedDeck && decks.length > 0 && (
+            <span className="self-center text-xs text-slate-400">Select a deck to use AI generation</span>
+          )}
+          {!isLoggedIn && (
+            <span className="self-center text-xs text-slate-400">Login to use AI generation</span>
+          )}
+        </div>
+
+        {/* Color picker shown while typing a new deck name */}
+        <div className="space-y-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Deck color</p>
+          <ColorPicker value={newDeckColorIndex} onChange={setNewDeckColorIndex} />
+        </div>
       </div>
 
       <div className="mt-4 flex gap-4">
+        {/* Deck list */}
         <div className="min-w-[200px]">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Decks</p>
           <ul className="mt-2 space-y-1">
             {decks.map((d) => {
               const colors = getDeckColor(d.colorIndex)
+              const isPickingColor = colorPickerDeckId === d.id
               return (
-                <li key={d.id} className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    className={`flex min-w-0 items-center gap-2 truncate text-left text-sm ${
-                      selectedDeckId === d.id
-                        ? 'font-medium text-slate-800 dark:text-slate-100'
-                        : 'text-slate-700 dark:text-slate-300'
-                    }`}
-                    onClick={() => setSelectedDeckId(d.id)}
-                  >
-                    {/* Colored dot indicating this deck's assigned color */}
-                    <span
-                      className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: colors.front }}
-                    />
-                    <span className="truncate">{d.name}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="text-red-600 hover:underline"
-                    onClick={() => handleDeleteDeckClick(d.id)}
-                    aria-label="Delete deck"
-                  >
-                    ×
-                  </button>
+                <li key={d.id}>
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      className={`flex min-w-0 items-center gap-2 truncate text-left text-sm ${
+                        selectedDeckId === d.id
+                          ? 'font-medium text-slate-800 dark:text-slate-100'
+                          : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                      onClick={() => setSelectedDeckId(d.id)}
+                    >
+                      <span
+                        className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                        style={{ backgroundColor: colors.front }}
+                      />
+                      <span className="truncate">{d.name}</span>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {/* Color edit button: shows front/back swatch, toggles inline picker */}
+                      <button
+                        type="button"
+                        title="Change deck color"
+                        onClick={() => setColorPickerDeckId(isPickingColor ? null : d.id)}
+                        className="flex overflow-hidden rounded hover:scale-110 transition-transform"
+                      >
+                        <span className="block h-3 w-3" style={{ backgroundColor: colors.front }} />
+                        <span className="block h-3 w-3" style={{ backgroundColor: colors.back }} />
+                      </button>
+                      <button
+                        type="button"
+                        className="text-red-600 hover:underline"
+                        onClick={() => handleDeleteDeckClick(d.id)}
+                        aria-label="Delete deck"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  {/* Inline color picker for this deck */}
+                  {isPickingColor && (
+                    <div className="mt-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-600 dark:bg-slate-700">
+                      <p className="mb-1.5 text-xs text-slate-500 dark:text-slate-400">Pick a color</p>
+                      <ColorPicker
+                        value={d.colorIndex ?? 0}
+                        onChange={(i) => handleChangeDeckColor(d.id, i)}
+                      />
+                    </div>
+                  )}
                 </li>
               )
             })}
           </ul>
         </div>
 
+        {/* Card list */}
         <div className="flex-1">
           {selectedDeck && (
             <>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-2">
-                  {/* Color swatch showing this deck's front/back colors */}
-                  <div className="flex gap-1">
-                    <span
-                      className="inline-block h-4 w-4 rounded-sm"
-                      style={{ backgroundColor: deckColors.front }}
-                      title="Front color"
-                    />
-                    <span
-                      className="inline-block h-4 w-4 rounded-sm"
-                      style={{ backgroundColor: deckColors.back }}
-                      title="Back color"
-                    />
+                  <div className="flex gap-0.5">
+                    <span className="inline-block h-4 w-4 rounded-sm" style={{ backgroundColor: deckColors.front }} title="Front color" />
+                    <span className="inline-block h-4 w-4 rounded-sm" style={{ backgroundColor: deckColors.back }} title="Back color" />
                   </div>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     {selectedDeck.name}
