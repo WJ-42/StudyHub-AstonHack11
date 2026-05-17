@@ -448,6 +448,20 @@ html.theme-octopus aside button.rounded-lg[class*='p-2']:not([class*='px-4']):no
   -webkit-backdrop-filter: blur(8px);
 }
 
+/* TopBar user menu trigger: the broad [class*='bg-slate-'] selectors above
+   accidentally match hover:bg-slate-100 on this button and give it a permanent
+   background + blur. Reset it to transparent and provide a clean hover instead. */
+html.theme-octopus header button[aria-label="User menu"] {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.theme-octopus header button[aria-label="User menu"]:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 .theme-octopus .text-slate-800,
 .theme-octopus .text-slate-700 {
   color: #EDE6FF !important;
@@ -525,27 +539,7 @@ html.theme-octopus aside button.rounded-lg[class*='p-2']:not([class*='px-4']):no
   animation: none !important;
 }
 
-/* Octopus theme: cursor bubble pop-and-rise animation.
-   No CSS variables used here — browser support for CSS custom properties
-   inside keyframe transform values is inconsistent. Drift is handled by
-   the component setting a random translateX on the element directly. */
-@keyframes octopus-cursor-bubble {
-  0% {
-    opacity: 0.85;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  70% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, calc(-50% - 75px)) scale(1.6);
-  }
-}
 
-.reduce-motion .octopus-cursor-bubble {
-  animation: none !important;
-}
 
 /* Pip-Boy theme - Fallout 4 CRT green-tinted retro terminal */
 .theme-pipboy {
