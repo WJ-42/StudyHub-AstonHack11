@@ -39,7 +39,6 @@ type CursorBubble = {
   id: number
   x: number
   y: number
-  drift: number
   size: number
   duration: number
 }
@@ -54,15 +53,13 @@ export function OctopusThemeEffects() {
     useCallback((clientX: number, clientY: number) => {
       if (reduceMotion) return
       const id = ++idRef.current
-      // Small random offset so bubbles do not stack exactly on each other
+      // Small random offset so bubbles do not all stack exactly on the cursor
       const x = clientX + (Math.random() - 0.5) * 16
       const y = clientY + (Math.random() - 0.5) * 16
-      // Each bubble gets its own random properties for a natural look
-      const drift = (Math.random() - 0.5) * 44
       const size = 5 + Math.random() * 7
       const duration = 1.0 + Math.random() * 0.7
       setCursorBubbles((prev) => {
-        const next = [...prev, { id, x, y, drift, size, duration }].slice(-CURSOR_BUBBLE_MAX)
+        const next = [...prev, { id, x, y, size, duration }].slice(-CURSOR_BUBBLE_MAX)
         return next
       })
       const removeDelay = Math.round(duration * 1000) + 150
@@ -116,7 +113,7 @@ export function OctopusThemeEffects() {
               />
             )
           })}
-          {/* Cursor bubbles: pop at the cursor and rise upward with random drift */}
+          {/* Cursor bubbles: pop at cursor and rise straight upward */}
           {cursorBubbles.map((b) => (
             <div
               key={b.id}
@@ -126,9 +123,8 @@ export function OctopusThemeEffects() {
                 height: b.size,
                 left: b.x,
                 top: b.y,
-                '--bubble-drift': `${b.drift}px`,
                 animation: `octopus-cursor-bubble ${b.duration}s ease-out forwards`,
-              } as React.CSSProperties}
+              }}
             />
           ))}
         </>

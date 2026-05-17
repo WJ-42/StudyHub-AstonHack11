@@ -525,18 +525,21 @@ html.theme-octopus aside button.rounded-lg[class*='p-2']:not([class*='px-4']):no
   animation: none !important;
 }
 
-/* Octopus theme: cursor bubble pop-and-rise animation */
+/* Octopus theme: cursor bubble pop-and-rise animation.
+   No CSS variables used here — browser support for CSS custom properties
+   inside keyframe transform values is inconsistent. Drift is handled by
+   the component setting a random translateX on the element directly. */
 @keyframes octopus-cursor-bubble {
   0% {
-    transform: translate(-50%, -50%) scale(1);
     opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1);
   }
   70% {
-    opacity: 0.35;
+    opacity: 0.3;
   }
   100% {
-    transform: translate(calc(-50% + var(--bubble-drift, 0px)), calc(-50% - 72px)) scale(1.6);
     opacity: 0;
+    transform: translate(-50%, calc(-50% - 75px)) scale(1.6);
   }
 }
 

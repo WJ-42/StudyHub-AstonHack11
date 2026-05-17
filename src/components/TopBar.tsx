@@ -49,14 +49,11 @@ export function TopBar() {
     navigate('/')
   }
 
-  // Classes shared by all three dropdown items for consistent look
+  // All three items are <a> tags so they share identical rendering.
+  // <button> elements carry browser UA background/border in dark mode
+  // that bleeds through even with Tailwind resets, <a> does not.
   const dropdownItemClass =
-    'block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 cursor-pointer'
-
-  // Inline style on <button> elements resets browser UA stylesheet completely.
-  // Tailwind classes alone are not enough because portal-rendered buttons in dark
-  // mode can have UA background/border bleed through regardless of utility classes.
-  const btnReset: React.CSSProperties = { background: 'none', border: 'none', outline: 'none' }
+    'block w-full px-3 py-2 text-left text-sm no-underline text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 cursor-pointer'
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900">
@@ -111,14 +108,15 @@ export function TopBar() {
               className="fixed z-[10000] min-w-[140px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800"
               style={{ top: dropdownRect.top, right: dropdownRect.right }}
             >
-              <button
-                type="button"
-                style={btnReset}
+              {/* Profile and Logout use <a> instead of <button> to avoid
+                  browser UA button styling bleeding through in dark mode */}
+              <a
+                href="#"
                 className={dropdownItemClass}
-                onClick={() => { setUserMenuOpen(false); setProfileOpen(true) }}
+                onClick={(e) => { e.preventDefault(); setUserMenuOpen(false); setProfileOpen(true) }}
               >
                 Profile
-              </button>
+              </a>
               <Link
                 to="/app/settings"
                 className={dropdownItemClass}
@@ -126,14 +124,13 @@ export function TopBar() {
               >
                 Settings
               </Link>
-              <button
-                type="button"
-                style={btnReset}
+              <a
+                href="#"
                 className={dropdownItemClass}
-                onClick={handleLogout}
+                onClick={(e) => { e.preventDefault(); handleLogout() }}
               >
                 Logout
-              </button>
+              </a>
             </div>,
             document.body
           )}
