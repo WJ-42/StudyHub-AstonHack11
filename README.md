@@ -108,42 +108,42 @@ Originally built at AstonHack 11 (24-hour hackathon at Aston University). Since 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│                  Browser                     │
-│                                             │
-│   React + TypeScript (Vite)                 │
-│   ┌──────────┐  ┌──────────┐  ┌─────────┐  │
-│   │Workspace │  │  Study   │  │  Media  │  │
-│   │ (IndexDB)│  │  Modes   │  │  Hub    │  │
-│   └──────────┘  └──────────┘  └─────────┘  │
-│                                             │
-│   AuthContext (JWT in memory)               │
-│   Service Worker (Workbox, offline cache)   │
-└────────────────────┬────────────────────────┘
-                     │ HTTPS + Bearer token
-                     ▼
-┌─────────────────────────────────────────────┐
-│         Spring Boot 3.5 (Fly.io)            │
-│                                             │
-│   /api/auth  →  AuthController              │
-│   /api/sync  →  SyncController              │
-│   /api/ai    →  AiController                │
-│                    │                        │
-│   JwtAuthFilter (Spring Security)           │
-│   BCrypt password hashing                   │
-│   Rate limiter (5 AI req/day/user)          │
-└──────────┬──────────────────────┬───────────┘
-           │                      │
-           ▼                      ▼
-┌──────────────────┐   ┌──────────────────────┐
-│  Neon PostgreSQL │   │  Anthropic API       │
-│  (London region) │   │  Claude Haiku        │
-│                  │   │  Flashcard generation│
-│  Users           │   └──────────────────────┘
-│  Decks           │
-│  Cards           │
-│  Notes           │
-└──────────────────┘
+┌─────────────────────────────────────────┐
+│                Browser                  │
+│                                         │
+│  React + TypeScript (Vite)              │
+│  ┌─────────┐ ┌─────────┐ ┌──────────┐  │
+│  │Workspace│ │  Study  │ │  Media   │  │
+│  │(IndexDB)│ │  Modes  │ │   Hub    │  │
+│  └─────────┘ └─────────┘ └──────────┘  │
+│                                         │
+│  AuthContext (JWT in memory)            │
+│  Service Worker (Workbox, offline)      │
+└─────────────────┬───────────────────────┘
+                  │ HTTPS + Bearer token
+                  ▼
+┌─────────────────────────────────────────┐
+│       Spring Boot 3.5 (Fly.io)          │
+│                                         │
+│  /api/auth  →  AuthController           │
+│  /api/sync  →  SyncController           │
+│  /api/ai    →  AiController             │
+│                                         │
+│  JwtAuthFilter (Spring Security)        │
+│  BCrypt password hashing                │
+│  Rate limiter (5 AI req/day/user)       │
+└──────────┬──────────────────────────────┘
+           │                   │
+           ▼                   ▼
+┌────────────────────┐  ┌─────────────────┐
+│  Neon PostgreSQL   │  │  Anthropic API  │
+│  (London region)   │  │  Claude Haiku   │
+│                    │  │  Flashcard gen  │
+│  Users             │  └─────────────────┘
+│  Decks             │
+│  Cards             │
+│  Notes             │
+└────────────────────┘
 ```
 
 ---
@@ -204,8 +204,8 @@ This project was originally created at AstonHack 11 with one teammate. The divis
 
 ## Roadmap
 
-- [ ] Email verification on registration
-- [ ] Flashcard spaced repetition algorithm (SM-2)
-- [ ] Collaborative workspaces
-- [ ] Mobile-optimised layout improvements
-- [ ] Export flashcard decks as CSV or PDF
+- Email verification on registration
+- Flashcard spaced repetition algorithm (SM-2)
+- Collaborative workspaces
+- Mobile-optimised layout improvements
+- Export flashcard decks as CSV or PDF
