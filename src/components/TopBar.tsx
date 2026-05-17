@@ -112,14 +112,14 @@ export function TopBar() {
                   browser UA button styling bleeding through in dark mode */}
               <a
                 href="#"
-                className={dropdownItemClass}
+                className={`${dropdownItemClass} border-b border-slate-100 dark:border-slate-700`}
                 onClick={(e) => { e.preventDefault(); setUserMenuOpen(false); setProfileOpen(true) }}
               >
                 Profile
               </a>
               <Link
                 to="/app/settings"
-                className={dropdownItemClass}
+                className={`${dropdownItemClass} border-b border-slate-100 dark:border-slate-700`}
                 onClick={() => setUserMenuOpen(false)}
               >
                 Settings

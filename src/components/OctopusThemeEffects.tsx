@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSettings } from '@/contexts/SettingsContext'
 
 const AMBIENT_BUBBLE_COUNT = 14
-const CURSOR_BUBBLE_MAX = 12
-const MOUSE_THROTTLE_MS = 130
+const CURSOR_BUBBLE_MAX = 10
+const MOUSE_THROTTLE_MS = 180
 
 function useThrottle(fn: (x: number, y: number) => void, ms: number): (x: number, y: number) => void {
   const last = useRef(0)
@@ -37,8 +37,11 @@ function useThrottle(fn: (x: number, y: number) => void, ms: number): (x: number
 
 type CursorBubble = {
   id: number
-  x: number
-  y: number
+  // spawnX is the cursor X plus a random horizontal drift baked in at creation.
+  // This means each bubble rises from a slightly different horizontal position
+  // so they fan out naturally rather than stacking on top of each other.
+  spawnX: number
+  spawnY: number
   size: number
   duration: number
 }
@@ -53,13 +56,15 @@ export function OctopusThemeEffects() {
     useCallback((clientX: number, clientY: number) => {
       if (reduceMotion) return
       const id = ++idRef.current
-      // Small random offset so bubbles do not all stack exactly on the cursor
-      const x = clientX + (Math.random() - 0.5) * 16
-      const y = clientY + (Math.random() - 0.5) * 16
-      const size = 5 + Math.random() * 7
-      const duration = 1.0 + Math.random() * 0.7
+      // Bake horizontal drift directly into the spawn position.
+      // Range of ±28px gives a natural spread without looking too random.
+      const spawnX = clientX + (Math.random() - 0.5) * 56
+      // Slight vertical scatter too so bubbles don't all start at the exact same height
+      const spawnY = clientY + (Math.random() - 0.5) * 20
+      const size = 5 + Math.random() * 8
+      const duration = 1.1 + Math.random() * 0.8
       setCursorBubbles((prev) => {
-        const next = [...prev, { id, x, y, size, duration }].slice(-CURSOR_BUBBLE_MAX)
+        const next = [...prev, { id, spawnX, spawnY, size, duration }].slice(-CURSOR_BUBBLE_MAX)
         return next
       })
       const removeDelay = Math.round(duration * 1000) + 150
@@ -113,7 +118,8 @@ export function OctopusThemeEffects() {
               />
             )
           })}
-          {/* Cursor bubbles: pop at cursor and rise straight upward */}
+          {/* Cursor bubbles: spawn at a random offset from cursor and rise upward.
+              Drift is baked into spawnX so the keyframe stays simple and cross-browser. */}
           {cursorBubbles.map((b) => (
             <div
               key={b.id}
@@ -121,8 +127,8 @@ export function OctopusThemeEffects() {
               style={{
                 width: b.size,
                 height: b.size,
-                left: b.x,
-                top: b.y,
+                left: b.spawnX,
+                top: b.spawnY,
                 animation: `octopus-cursor-bubble ${b.duration}s ease-out forwards`,
               }}
             />
