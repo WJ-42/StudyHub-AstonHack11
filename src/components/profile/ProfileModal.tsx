@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/Button'
 import { getUserName, setUserName } from '@/store/session'
 import { getAvatar, setAvatar } from '@/store/storage'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface ProfileModalProps {
   open: boolean
@@ -10,6 +11,7 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ open, onClose }: ProfileModalProps) {
+  const { updateDisplayName } = useAuth()
   const [displayName, setDisplayName] = useState('')
   const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -23,7 +25,12 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
   const handleSave = () => {
     const name = displayName.trim()
-    if (name) setUserName(name)
+    if (name) {
+      setUserName(name)
+      // Also update the live AuthContext state so the name reflects
+      // immediately in the TopBar and anywhere else without a page reload
+      updateDisplayName(name)
+    }
     setAvatar(avatarDataUrl)
     onClose(true)
   }
@@ -61,7 +68,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
           placeholder="Your name"
         />
 

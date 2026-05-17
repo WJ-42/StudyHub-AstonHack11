@@ -49,6 +49,10 @@ export function TopBar() {
     navigate('/')
   }
 
+  // Shared classes for all three dropdown items so they look identical
+  const dropdownItemClass =
+    'block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 bg-transparent border-0 appearance-none cursor-pointer'
+
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900">
       <div className="flex items-center gap-2">
@@ -102,23 +106,24 @@ export function TopBar() {
               className="fixed z-[10000] min-w-[140px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
               style={{ top: dropdownRect.top, right: dropdownRect.right }}
             >
+              {/* All three items use the same class so they look identical in all themes */}
               <button
                 type="button"
-                className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                className={dropdownItemClass}
                 onClick={() => { setUserMenuOpen(false); setProfileOpen(true) }}
               >
                 Profile
               </button>
               <Link
                 to="/app/settings"
-                className="block px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                className={dropdownItemClass}
                 onClick={() => setUserMenuOpen(false)}
               >
                 Settings
               </Link>
               <button
                 type="button"
-                className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                className={dropdownItemClass}
                 onClick={handleLogout}
               >
                 Logout

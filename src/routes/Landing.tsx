@@ -78,6 +78,30 @@ function useScrollVisibility(threshold = 0.1) {
 
 type AuthMode = 'login' | 'register';
 
+// Validates that the email looks like a real email address
+function validateEmail(email: string): string | null {
+  if (!email.trim()) return 'Email is required'
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+  if (!re.test(email.trim())) return 'Please enter a valid email address'
+  return null
+}
+
+// Password rules: min 7 chars, at least one uppercase, at least one special character
+function validatePassword(password: string): string | null {
+  if (!password) return 'Password is required'
+  if (password.length < 7) return 'Password must be at least 7 characters'
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one capital letter'
+  if (!/[^a-zA-Z0-9]/.test(password)) return 'Password must contain at least one special character (e.g. ! @ # $)'
+  return null
+}
+
+const inputBase =
+  'mt-1 w-full rounded-lg border px-3 py-2 text-sm bg-white text-slate-800 dark:bg-slate-700 dark:text-slate-200 transition-colors'
+const inputNormal =
+  'border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500'
+const inputError =
+  'border-red-400 dark:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-400/40 focus:border-red-400'
+
 function AuthModal({
   mode,
   onClose,
@@ -92,24 +116,74 @@ function AuthModal({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [localError, setLocalError] = useState<string | null>(null);
+
+  // Per-field error messages shown after the user has touched each field
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [touched, setTouched] = useState({ email: false, password: false, name: false })
+
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  // Reset validation state when switching between login and register
+  useEffect(() => {
+    setEmailError(null)
+    setPasswordError(null)
+    setNameError(null)
+    setTouched({ email: false, password: false, name: false })
+    setServerError(null)
+    setEmail('')
+    setPassword('')
+    setDisplayName('')
+  }, [mode])
+
+  const handleEmailBlur = () => {
+    setTouched(t => ({ ...t, email: true }))
+    setEmailError(validateEmail(email))
+  }
+
+  const handlePasswordBlur = () => {
+    setTouched(t => ({ ...t, password: true }))
+    // Only enforce password strength rules on register, login just needs non-empty
+    if (mode === 'register') {
+      setPasswordError(validatePassword(password))
+    } else {
+      setPasswordError(password ? null : 'Password is required')
+    }
+  }
+
+  const handleNameBlur = () => {
+    setTouched(t => ({ ...t, name: true }))
+    setNameError(displayName.trim() ? null : 'Display name is required')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalError(null);
+    setServerError(null);
+
+    // Run all validations before submitting
+    const emailErr = validateEmail(email)
+    const passwordErr = mode === 'register'
+      ? validatePassword(password)
+      : (password ? null : 'Password is required')
+    const nameErr = mode === 'register' && !displayName.trim() ? 'Display name is required' : null
+
+    setEmailError(emailErr)
+    setPasswordError(passwordErr)
+    setNameError(nameErr)
+    setTouched({ email: true, password: true, name: true })
+
+    if (emailErr || passwordErr || nameErr) return
+
     try {
       if (mode === 'login') {
         await login(email, password);
       } else {
-        if (!displayName.trim()) {
-          setLocalError('Display name is required');
-          return;
-        }
         await register(email, password, displayName);
       }
       navigate('/app');
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Something went wrong');
+      setServerError(err instanceof Error ? err.message : 'Something went wrong');
     }
   };
 
@@ -133,7 +207,7 @@ function AuthModal({
             : 'Sign up to save and sync your study data.'}
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
           {mode === 'register' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -143,10 +217,13 @@ function AuthModal({
                 type="text"
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                onBlur={handleNameBlur}
+                className={`${inputBase} ${touched.name && nameError ? inputError : inputNormal}`}
                 placeholder="Your name"
-                required
               />
+              {touched.name && nameError && (
+                <p className="mt-1 text-xs text-red-500 dark:text-red-400">{nameError}</p>
+              )}
             </div>
           )}
 
@@ -157,11 +234,18 @@ function AuthModal({
             <input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+              onChange={e => {
+                setEmail(e.target.value)
+                if (touched.email) setEmailError(validateEmail(e.target.value))
+              }}
+              onBlur={handleEmailBlur}
+              className={`${inputBase} ${touched.email && emailError ? inputError : inputNormal}`}
               placeholder="you@example.com"
-              required
+              autoComplete="email"
             />
+            {touched.email && emailError && (
+              <p className="mt-1 text-xs text-red-500 dark:text-red-400">{emailError}</p>
+            )}
           </div>
 
           <div>
@@ -171,23 +255,35 @@ function AuthModal({
             <input
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+              onChange={e => {
+                setPassword(e.target.value)
+                if (touched.password && mode === 'register') setPasswordError(validatePassword(e.target.value))
+              }}
+              onBlur={handlePasswordBlur}
+              className={`${inputBase} ${touched.password && passwordError ? inputError : inputNormal}`}
               placeholder="••••••••"
-              required
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             />
+            {touched.password && passwordError && (
+              <p className="mt-1 text-xs text-red-500 dark:text-red-400">{passwordError}</p>
+            )}
+            {mode === 'register' && !passwordError && (
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Min 7 characters, one capital letter, one special character
+              </p>
+            )}
           </div>
 
-          {(localError || error) && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              {localError || error}
+          {(serverError || error) && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+              {serverError || error}
             </p>
           )}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {isLoading
               ? 'Please wait...'

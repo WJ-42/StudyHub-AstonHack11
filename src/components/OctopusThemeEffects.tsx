@@ -2,9 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSettings } from '@/contexts/SettingsContext'
 
 const AMBIENT_BUBBLE_COUNT = 14
-const CURSOR_BUBBLE_MAX = 10
-const CURSOR_BUBBLE_MS = 2000
-const MOUSE_THROTTLE_MS = 120
+const CURSOR_BUBBLE_MAX = 12
+const MOUSE_THROTTLE_MS = 130
 
 function useThrottle(fn: (x: number, y: number) => void, ms: number): (x: number, y: number) => void {
   const last = useRef(0)
@@ -36,7 +35,14 @@ function useThrottle(fn: (x: number, y: number) => void, ms: number): (x: number
   )
 }
 
-type CursorBubble = { id: number; x: number; y: number }
+type CursorBubble = {
+  id: number
+  x: number
+  y: number
+  drift: number
+  size: number
+  duration: number
+}
 
 export function OctopusThemeEffects() {
   const { theme, reduceMotion } = useSettings()
@@ -48,16 +54,22 @@ export function OctopusThemeEffects() {
     useCallback((clientX: number, clientY: number) => {
       if (reduceMotion) return
       const id = ++idRef.current
-      const x = clientX + (Math.random() - 0.5) * 24
-      const y = clientY + (Math.random() - 0.5) * 24
+      // Small random offset so bubbles do not stack exactly on each other
+      const x = clientX + (Math.random() - 0.5) * 16
+      const y = clientY + (Math.random() - 0.5) * 16
+      // Each bubble gets its own random properties for a natural look
+      const drift = (Math.random() - 0.5) * 44
+      const size = 5 + Math.random() * 7
+      const duration = 1.0 + Math.random() * 0.7
       setCursorBubbles((prev) => {
-        const next = [...prev, { id, x, y }].slice(-CURSOR_BUBBLE_MAX)
+        const next = [...prev, { id, x, y, drift, size, duration }].slice(-CURSOR_BUBBLE_MAX)
         return next
       })
+      const removeDelay = Math.round(duration * 1000) + 150
       const t = setTimeout(() => {
         removeTimeoutRef.current.delete(id)
         setCursorBubbles((prev) => prev.filter((b) => b.id !== id))
-      }, CURSOR_BUBBLE_MS)
+      }, removeDelay)
       removeTimeoutRef.current.set(id, t)
     }, [reduceMotion]),
     MOUSE_THROTTLE_MS
@@ -84,7 +96,7 @@ export function OctopusThemeEffects() {
     >
       {showBubbles && (
         <>
-          {/* Ambient bubbles */}
+          {/* Ambient bubbles rising from the bottom of the screen */}
           {Array.from({ length: AMBIENT_BUBBLE_COUNT }, (_, i) => {
             const size = 4 + (i % 9)
             const left = (i * 7 + 13) % 100
@@ -104,19 +116,19 @@ export function OctopusThemeEffects() {
               />
             )
           })}
-          {/* Cursor bubbles */}
+          {/* Cursor bubbles: pop at the cursor and rise upward with random drift */}
           {cursorBubbles.map((b) => (
             <div
               key={b.id}
-              className="octopus-bubble-float absolute rounded-full bg-white/70 shadow-[0_0_4px_rgba(255,255,255,0.6)]"
+              className="octopus-cursor-bubble absolute rounded-full bg-white/75 shadow-[0_0_5px_rgba(255,255,255,0.65)]"
               style={{
-                width: 6,
-                height: 6,
+                width: b.size,
+                height: b.size,
                 left: b.x,
                 top: b.y,
-                transform: 'translate(-50%, -50%)',
-                animation: `octopus-bubble-float 2s ease-in forwards`,
-              }}
+                '--bubble-drift': `${b.drift}px`,
+                animation: `octopus-cursor-bubble ${b.duration}s ease-out forwards`,
+              } as React.CSSProperties}
             />
           ))}
         </>

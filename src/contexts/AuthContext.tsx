@@ -16,6 +16,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => void;
+  updateDisplayName: (name: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -71,6 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }, []);
 
+  // Updates the display name in context state so TopBar and anywhere else
+  // that reads user.displayName reflects the change immediately without a reload
+  const updateDisplayName = useCallback((name: string) => {
+    setUser(prev => prev ? { ...prev, displayName: name } : null);
+  }, []);
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -80,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      updateDisplayName,
     }}>
       {children}
     </AuthContext.Provider>

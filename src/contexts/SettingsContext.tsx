@@ -29,6 +29,18 @@ interface SettingsContextValue {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
+// PWA top bar colors per theme. These match each theme's body/background color
+// so the OS chrome blends naturally with the app when installed as a PWA.
+// NOT blue, since the icon is already blue (as per design requirement).
+const THEME_BAR_COLORS: Record<Theme, string> = {
+  light: '#f8fafc',
+  dark: '#000000',
+  cyberpunk: '#05060A',
+  octopus: '#0a0e1a',
+  pipboy: '#0A0F0A',
+  lofi: '#2A1F1A',
+}
+
 function getEffectiveReduceMotion(): boolean {
   if (typeof window === 'undefined') return false
   const user = getReduceMotion()
@@ -51,6 +63,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     } else {
       document.documentElement.classList.remove('dark')
     }
+  }, [theme])
+
+  // Update the PWA top bar / OS chrome color whenever the theme changes
+  useEffect(() => {
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'theme-color'
+      document.head.appendChild(meta)
+    }
+    meta.content = THEME_BAR_COLORS[theme]
   }, [theme])
 
   useEffect(() => {
