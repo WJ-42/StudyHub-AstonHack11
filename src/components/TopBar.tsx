@@ -88,7 +88,7 @@ export function TopBar() {
           <button
             ref={triggerRef}
             type="button"
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-100 hover:dark:bg-white/10 focus:outline-none"
             aria-haspopup="true"
             aria-expanded={userMenuOpen}
             aria-label="User menu"
