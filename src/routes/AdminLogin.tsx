@@ -31,6 +31,12 @@ export function AdminLogin() {
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-white">Study Hub</h1>
           <p className="mt-1 text-sm text-slate-400">Admin Portal</p>
+          <a
+            href="/"
+            className="mt-2 inline-block text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            ← Back to main site
+          </a>
         </div>
         <div className="rounded-xl border border-slate-700 bg-slate-900 p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Sign in</h2>
