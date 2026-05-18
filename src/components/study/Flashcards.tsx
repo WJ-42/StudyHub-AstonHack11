@@ -312,6 +312,9 @@ export function Flashcards() {
   const [aiModalOpen, setAiModalOpen] = useState(false)
   // Which deck is currently showing its inline color picker
   const [colorPickerDeckId, setColorPickerDeckId] = useState<string | null>(null)
+  // Which deck name is currently being edited inline
+  const [renamingDeckId, setRenamingDeckId] = useState<string | null>(null)
+  const [renamingDeckValue, setRenamingDeckValue] = useState('')
 
   const loadDecks = useCallback(async () => {
     const d = await getDecks()
@@ -366,6 +369,18 @@ export function Flashcards() {
     await saveDeck({ ...deck, colorIndex })
     setColorPickerDeckId(null)
     await loadDecks()
+  }
+
+  const handleRenameDeck = async (deckId: string) => {
+    const deck = decks.find((d) => d.id === deckId)
+    if (!deck) return
+    const name = renamingDeckValue.trim()
+    if (name && name !== deck.name) {
+      await saveDeck({ ...deck, name })
+      await loadDecks()
+    }
+    setRenamingDeckId(null)
+    setRenamingDeckValue('')
   }
 
   const handleAddCard = async () => {
@@ -546,30 +561,57 @@ export function Flashcards() {
             {decks.map((d) => {
               const colors = getDeckColor(d.colorIndex)
               const isPickingColor = colorPickerDeckId === d.id
+              const isRenaming = renamingDeckId === d.id
               return (
                 <li key={d.id}>
                   <div className="flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      className={`flex min-w-0 items-center gap-2 truncate text-left text-sm ${
-                        selectedDeckId === d.id
-                          ? 'font-medium text-slate-800 dark:text-slate-100'
-                          : 'text-slate-700 dark:text-slate-300'
-                      }`}
-                      onClick={() => setSelectedDeckId(d.id)}
-                    >
-                      <span
-                        className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                        style={{ backgroundColor: colors.front }}
+                    {isRenaming ? (
+                      <input
+                        type="text"
+                        value={renamingDeckValue}
+                        onChange={e => setRenamingDeckValue(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleRenameDeck(d.id)
+                          if (e.key === 'Escape') { setRenamingDeckId(null); setRenamingDeckValue('') }
+                        }}
+                        onBlur={() => handleRenameDeck(d.id)}
+                        autoFocus
+                        className="min-w-0 flex-1 rounded border border-blue-400 bg-white px-1.5 py-0.5 text-sm dark:bg-slate-700 dark:text-slate-200"
                       />
-                      <span className="truncate">{d.name}</span>
-                    </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className={`flex min-w-0 items-center gap-2 truncate text-left text-sm ${
+                          selectedDeckId === d.id
+                            ? 'font-medium text-slate-800 dark:text-slate-100'
+                            : 'text-slate-700 dark:text-slate-300'
+                        }`}
+                        onClick={() => setSelectedDeckId(d.id)}
+                      >
+                        <span
+                          className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                          style={{ backgroundColor: colors.front }}
+                        />
+                        <span className="truncate">{d.name}</span>
+                      </button>
+                    )}
                     <div className="flex items-center gap-1">
-                      {/* Color edit button: shows front/back swatch, toggles inline picker */}
+                      {/* Rename button */}
+                      {!isRenaming && (
+                        <button
+                          type="button"
+                          title="Rename deck"
+                          onClick={() => { setRenamingDeckId(d.id); setRenamingDeckValue(d.name); setColorPickerDeckId(null) }}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs"
+                        >
+                          ✎
+                        </button>
+                      )}
+                      {/* Color edit button */}
                       <button
                         type="button"
                         title="Change deck color"
-                        onClick={() => setColorPickerDeckId(isPickingColor ? null : d.id)}
+                        onClick={() => { setColorPickerDeckId(isPickingColor ? null : d.id); setRenamingDeckId(null) }}
                         className="flex overflow-hidden rounded hover:scale-110 transition-transform"
                       >
                         <span className="block h-3 w-3" style={{ backgroundColor: colors.front }} />
