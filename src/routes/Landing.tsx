@@ -400,6 +400,12 @@ export function Landing() {
             >
               Use as Guest
             </button>
+            <a
+              href="/admin/login"
+              className="rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md active:translate-y-0 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              Admin
+            </a>
           </div>
         </section>
 
