@@ -475,7 +475,7 @@ function ScrollFeatureCard({
             type="button"
             className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
               theme === t
-                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/20'
+                ? 'bg-blue-600 text-white shadow-md'
                 : 'border border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-400 hover:bg-slate-100 hover:shadow-md dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600'
             }`}
             onClick={() => setTheme(t)}
