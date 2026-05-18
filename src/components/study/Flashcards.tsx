@@ -13,7 +13,7 @@ import {
   type Flashcard,
 } from '@/store/study'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { generateFlashcards, type FlashcardPair } from '@/api/ai'
+import { generateFlashcards, extractFromFile, extractFromUrl, type FlashcardPair } from '@/api/ai'
 import { useAuth } from '@/contexts/AuthContext'
 
 // Renders a row of color swatches from the palette.
@@ -48,6 +48,8 @@ function ColorPicker({
   )
 }
 
+type InputMode = 'text' | 'file' | 'url'
+
 function AIGenerateModal({
   deckName,
   onClose,
@@ -57,12 +59,44 @@ function AIGenerateModal({
   onClose: () => void
   onAdd: (pairs: FlashcardPair[]) => void
 }) {
+  const [inputMode, setInputMode] = useState<InputMode>('text')
   const [text, setText] = useState('')
+  const [urlValue, setUrlValue] = useState('')
+  const [extracting, setExtracting] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [pairs, setPairs] = useState<FlashcardPair[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<'input' | 'preview'>('input')
+
+  const handleExtractFile = async (file: File) => {
+    setExtracting(true)
+    setError(null)
+    setText('')
+    try {
+      const extracted = await extractFromFile(file)
+      setText(extracted)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to extract text from file')
+    } finally {
+      setExtracting(false)
+    }
+  }
+
+  const handleExtractUrl = async () => {
+    if (!urlValue.trim()) return
+    setExtracting(true)
+    setError(null)
+    setText('')
+    try {
+      const extracted = await extractFromUrl(urlValue.trim())
+      setText(extracted)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch that URL')
+    } finally {
+      setExtracting(false)
+    }
+  }
 
   const handleGenerate = async () => {
     if (!text.trim()) return
@@ -89,6 +123,13 @@ function AIGenerateModal({
     })
   }
 
+  const tabClass = (mode: InputMode) =>
+    `px-3 py-1.5 text-sm rounded-lg transition-colors ${
+      inputMode === mode
+        ? 'bg-blue-600 text-white'
+        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700'
+    }`
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="relative w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
@@ -105,27 +146,104 @@ function AIGenerateModal({
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {step === 'input'
             ? `Cards will be added to "${deckName}"`
-            : `${pairs.length} cards generated. Select which ones to add to "${deckName}".`}
+            : `${pairs.length} cards generated. Select which to add to "${deckName}".`}
         </p>
         {step === 'input' && (
           <>
-            <textarea
-              className="mt-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
-              rows={8}
-              placeholder="Paste your notes or study material here..."
-              value={text}
-              onChange={e => setText(e.target.value)}
-            />
+            {/* Input mode tabs */}
+            <div className="mt-4 flex gap-1">
+              <button type="button" className={tabClass('text')} onClick={() => { setInputMode('text'); setError(null) }}>Paste text</button>
+              <button type="button" className={tabClass('file')} onClick={() => { setInputMode('file'); setError(null) }}>Upload file</button>
+              <button type="button" className={tabClass('url')}  onClick={() => { setInputMode('url');  setError(null) }}>Web page</button>
+            </div>
+
+            {/* Paste text */}
+            {inputMode === 'text' && (
+              <textarea
+                className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                rows={7}
+                placeholder="Paste your notes or study material here..."
+                value={text}
+                onChange={e => setText(e.target.value)}
+              />
+            )}
+
+            {/* File upload */}
+            {inputMode === 'file' && (
+              <div className="mt-3 space-y-3">
+                <label className="block cursor-pointer rounded-lg border-2 border-dashed border-slate-300 px-4 py-6 text-center hover:border-blue-400 dark:border-slate-600 dark:hover:border-blue-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {extracting ? 'Extracting text...' : 'Click to choose a PDF, DOCX, or TXT file'}
+                  </p>
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.txt"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0]
+                      if (f) handleExtractFile(f)
+                    }}
+                  />
+                </label>
+                {text && !extracting && (
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Extracted text (edit if needed)</p>
+                    <textarea
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                      rows={5}
+                      value={text}
+                      onChange={e => setText(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* URL input */}
+            {inputMode === 'url' && (
+              <div className="mt-3 space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://en.wikipedia.org/wiki/..."
+                    value={urlValue}
+                    onChange={e => setUrlValue(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleExtractUrl() }}
+                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                  />
+                  <button
+                    type="button"
+                    disabled={!urlValue.trim() || extracting}
+                    onClick={handleExtractUrl}
+                    className="rounded-lg bg-slate-700 px-4 py-2 text-sm text-white hover:bg-slate-600 disabled:opacity-50 dark:bg-slate-600 dark:hover:bg-slate-500"
+                  >
+                    {extracting ? 'Fetching...' : 'Fetch'}
+                  </button>
+                </div>
+                {text && !extracting && (
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Extracted text (edit if needed)</p>
+                    <textarea
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                      rows={5}
+                      value={text}
+                      onChange={e => setText(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
             {error && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
             )}
             <button
               type="button"
-              disabled={!text.trim() || generating}
+              disabled={!text.trim() || generating || extracting}
               onClick={handleGenerate}
               className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {generating ? 'Generating...' : 'Generate'}
+              {generating ? 'Generating...' : 'Generate flashcards'}
             </button>
           </>
         )}
@@ -144,12 +262,8 @@ function AIGenerateModal({
                     className="mt-0.5 shrink-0"
                   />
                   <div>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {pair.front}
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      {pair.back}
-                    </p>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{pair.front}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{pair.back}</p>
                   </div>
                 </label>
               ))}

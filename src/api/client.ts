@@ -15,9 +15,14 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> ?? {}),
   };
+
+  // Don't set Content-Type for FormData — the browser sets it automatically
+  // with the correct multipart boundary. For everything else use JSON.
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (authToken) {
     headers['Authorization'] = `Bearer ${authToken}`;
@@ -30,8 +35,6 @@ async function request<T>(
 
   if (!response.ok) {
     const text = await response.text();
-    // Try to pull a human-readable message out of a JSON error body.
-    // The backend returns { "error": "..." } for all handled exceptions.
     let message = `Request failed with status ${response.status}`;
     if (text) {
       try {
@@ -53,6 +56,12 @@ export const api = {
     request<T>(path, {
       method: 'POST',
       body: JSON.stringify(body),
+    }),
+
+  postFile: <T>(path: string, formData: FormData) =>
+    request<T>(path, {
+      method: 'POST',
+      body: formData,
     }),
 
   get: <T>(path: string) =>
