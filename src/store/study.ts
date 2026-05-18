@@ -196,6 +196,23 @@ export async function deleteCard(cardId: string): Promise<void> {
   await idbDelete(STORE, cardId)
 }
 
+// Removes all deck and card entries from local IDB.
+// Deliberately skips pomodoro/timer/timebox/spacedrep states so those
+// are not wiped when switching accounts.
+export async function clearLocalFlashcards(): Promise<void> {
+  const all = await idbGetAll<Record<string, unknown>>(STORE)
+  const toDelete = all.filter(
+    (x) =>
+      // card: has deckId field
+      'deckId' in x ||
+      // deck: has name + createdAt but is not a known timer-state record
+      ('name' in x && 'createdAt' in x && !('deckId' in x))
+  )
+  for (const item of toDelete) {
+    await idbDelete(STORE, item.id as string)
+  }
+}
+
 export function generateId(): string {
   return crypto.randomUUID()
 }

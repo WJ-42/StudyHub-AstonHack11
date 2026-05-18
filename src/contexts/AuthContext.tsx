@@ -1,7 +1,15 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { login as apiLogin, register as apiRegister, logout as apiLogout, AuthResponse } from '../api/auth';
-import { fetchDecks, fetchNotes } from '../api/sync';
+import { fetchDecks } from '../api/sync';
 import { setLoggedIn, logout as sessionLogout } from '../store/session';
+import {
+  clearLocalFlashcards,
+  saveDeck,
+  saveCard,
+  DECK_COLOR_PALETTE,
+  type FlashcardDeck,
+  type Flashcard,
+} from '../store/study';
 
 interface AuthUser {
   email: string;
@@ -21,6 +29,37 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Clears any stale local flashcard data then writes down whatever
+// the cloud has for this user. Runs on every login so account B
+// never sees account A's decks after a browser switch.
+async function hydrateLocalFromCloud(): Promise<void> {
+  try {
+    await clearLocalFlashcards();
+    const cloudDecks = await fetchDecks();
+    for (let i = 0; i < cloudDecks.length; i++) {
+      const d = cloudDecks[i];
+      const deck: FlashcardDeck = {
+        id: d.clientId,
+        name: d.name,
+        createdAt: Date.now(),
+        colorIndex: i % DECK_COLOR_PALETTE.length,
+      };
+      await saveDeck(deck);
+      for (const c of d.cards) {
+        const card: Flashcard = {
+          id: c.clientId,
+          deckId: d.clientId,
+          front: c.front,
+          back: c.back,
+        };
+        await saveCard(card);
+      }
+    }
+  } catch (err) {
+    console.warn('Could not hydrate local decks from cloud:', err);
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,12 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleAuthSuccess = useCallback(async (response: AuthResponse) => {
     setUser({ email: response.email, displayName: response.displayName });
     setLoggedIn(true);
-    try {
-      const [decks, notes] = await Promise.all([fetchDecks(), fetchNotes()]);
-      console.log(`Synced ${decks.length} decks and ${notes.length} notes from cloud`);
-    } catch (err) {
-      console.warn('Cloud sync failed, continuing with local data', err);
-    }
+    // Always hydrate from cloud on login so the local IDB reflects this
+    // user's data and not whoever was logged in before them.
+    await hydrateLocalFromCloud();
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -70,10 +106,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sessionLogout();
     setUser(null);
     setError(null);
+    // Wipe local flashcard data on logout so the next person who logs in
+    // on this browser starts with a clean slate before cloud hydration.
+    clearLocalFlashcards().catch((err) =>
+      console.warn('Could not clear local flashcards on logout:', err)
+    );
   }, []);
 
-  // Updates the display name in context state so TopBar and anywhere else
-  // that reads user.displayName reflects the change immediately without a reload
   const updateDisplayName = useCallback((name: string) => {
     setUser(prev => prev ? { ...prev, displayName: name } : null);
   }, []);
