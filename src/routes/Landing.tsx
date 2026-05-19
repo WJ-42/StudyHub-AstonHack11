@@ -190,8 +190,8 @@ function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-8 bg-black/50 sm:items-center sm:pt-4">
+      <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800 my-auto">
         <button
           type="button"
           onClick={onClose}

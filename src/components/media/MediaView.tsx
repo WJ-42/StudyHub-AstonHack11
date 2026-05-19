@@ -253,14 +253,14 @@ function MediaBlock({
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
       {subtitle && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 flex flex-wrap gap-2">
         <input
           type="url"
           placeholder={`Paste ${title} link...`}
           value={input}
           onChange={handleInputChange}
           onPaste={handlePaste}
-          className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          className="min-w-0 flex-1 basis-full sm:basis-auto rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           aria-label={`${title} URL`}
           aria-describedby={loadError ? `${storageKey}-error` : undefined}
         />

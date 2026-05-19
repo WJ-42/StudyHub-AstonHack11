@@ -23,7 +23,7 @@ function AppLayoutContent() {
         <TopBar />
         <div className="flex min-h-0 flex-1">
           <Sidebar />
-          <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden p-6 pb-0 min-w-0" aria-label="Main content">
+          <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden p-3 pb-0 sm:p-6 sm:pb-0 min-w-0" aria-label="Main content">
             <div className="flex min-h-0 flex-1 flex-col overflow-auto pb-6">
               <Outlet context={{ section: activeSection }} />
             </div>

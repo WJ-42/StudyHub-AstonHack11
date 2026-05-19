@@ -81,7 +81,7 @@ export function TopBar() {
           placeholder="Search workspace..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          className="hidden sm:block rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           aria-label="Search workspace"
         />
         <div className="relative" ref={userMenuRef}>

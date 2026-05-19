@@ -553,9 +553,9 @@ export function Flashcards() {
 
       </div>
 
-      <div className="mt-4 flex gap-4">
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row">
         {/* Deck list */}
-        <div className="min-w-[200px]">
+        <div className="sm:min-w-[200px]">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Decks</p>
           <ul className="mt-2 space-y-1">
             {decks.map((d) => {

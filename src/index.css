@@ -25,6 +25,15 @@ body {
   min-height: 100vh;
 }
 
+/* Hide scrollbar visually but keep functionality (used on horizontal tab rows) */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* Font choices (set via data-font on html from Settings) */
 html[data-font="dm-sans"],
 html:not([data-font]) {
