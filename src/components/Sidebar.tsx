@@ -86,7 +86,7 @@ export function Sidebar() {
       )}
       <aside
         className={`flex flex-col border-r border-slate-200/60 bg-slate-50/80 backdrop-blur-sm transition-[width] dark:border-slate-700/60 dark:bg-slate-800/40
-          ${sidebarCollapsed ? 'w-16' : 'w-64'}
+          w-64 md:${sidebarCollapsed ? 'w-16' : 'w-64'}
           md:relative
           fixed inset-y-0 left-0 z-50 mt-14 md:mt-0 shadow-xl
           ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
@@ -94,8 +94,7 @@ export function Sidebar() {
         <div className="flex items-center justify-between p-3">
           <button
             type="button"
-            style={{ background: 'none', border: 'none', outline: 'none' }}
-            className="rounded-lg p-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -106,15 +105,7 @@ export function Sidebar() {
               <rect x="3" y="16.5" width="18" height="1.5" rx="0.75" />
             </svg>
           </button>
-          <button
-            type="button"
-            style={{ background: 'none', border: 'none', outline: 'none' }}
-            className="rounded-lg p-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors md:hidden"
-            onClick={closeMobile}
-            aria-label="Close menu"
-          >
-            ×
-          </button>
+          <button type="button" className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors md:hidden" onClick={closeMobile} aria-label="Close menu">×</button>
         </div>
         {!sidebarCollapsed && (
           <div className="relative px-3 pb-3" ref={menuRef}>
