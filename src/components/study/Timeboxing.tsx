@@ -119,7 +119,7 @@ export function Timeboxing() {
           <li
             key={b.id}
             className={`flex items-center justify-between rounded border px-3 py-2 text-sm ${
-              i === state.currentIndex ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-slate-200 dark:border-slate-600'
+              i === state.currentIndex ? 'border-blue-600 bg-blue-600/10' : 'border-slate-200 dark:border-slate-600'
             }`}
           >
             <span className="text-slate-800 dark:text-slate-200">{b.label}</span>

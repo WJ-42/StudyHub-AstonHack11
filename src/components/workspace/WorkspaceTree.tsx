@@ -117,7 +117,7 @@ function TreeRow({
       data-workspace-row
       data-selected={isSelected ? 'true' : undefined}
       data-drop-target={isDropTarget ? 'true' : undefined}
-      className={`flex items-center gap-1 rounded px-2 py-1.5 text-sm ${isDropTarget ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''} ${isSelected ? 'bg-blue-100 dark:bg-blue-900/40' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+      className={`flex items-center gap-1 rounded px-2 py-1.5 text-sm ${isDropTarget ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''} ${isSelected ? 'bg-blue-600 text-white' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}
       style={{ paddingLeft: `${depth * 12 + 8}px` }}
       onDragOver={isF ? onDragOver : undefined}
       onDragLeave={isF ? onDragLeave : undefined}

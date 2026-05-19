@@ -149,7 +149,7 @@ export function Sidebar() {
                   <button
                     key={w.id}
                     type="button"
-                    className={`block w-full truncate px-4 py-2.5 text-left text-sm transition-colors ${w.id === activeWorkspaceId ? 'bg-blue-50/80 font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-200' : 'text-slate-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-700/80'}`}
+                    className={`block w-full truncate px-4 py-2.5 text-left text-sm transition-colors ${w.id === activeWorkspaceId ? 'bg-blue-600 font-medium text-white' : 'text-slate-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-700/80'}`}
                     onClick={() => { setActiveWorkspace(w.id); setWorkspaceMenuOpen(false) }}
                   >
                     {w.name}

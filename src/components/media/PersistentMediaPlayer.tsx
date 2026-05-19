@@ -102,7 +102,7 @@ export function PersistentMediaPlayer() {
             </button>
             <Link
               to="/app/media"
-              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-1 text-xs font-medium text-white shadow shadow-blue-500/20 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
+              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-transparent bg-blue-600 px-3 py-1 text-xs font-medium text-white shadow hover:bg-blue-700 transition-all"
             >
               Open
             </Link>
@@ -120,7 +120,7 @@ export function PersistentMediaPlayer() {
             </button>
             <Link
               to="/app/media"
-              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-1 text-xs font-medium text-white shadow shadow-blue-500/20 hover:from-blue-600 hover:to-blue-700 transition-all hover:opacity-95 dark:from-blue-500 dark:to-blue-600"
+              className="inline-flex h-7 w-[4.5rem] flex-shrink-0 items-center justify-center rounded-md border border-transparent bg-blue-600 px-3 py-1 text-xs font-medium text-white shadow hover:bg-blue-700 transition-all"
             >
               Open
             </Link>

@@ -100,7 +100,7 @@ export function ImageViewer({ contentBase64, fileId: _fileId, fileName, size: _s
                 }}
                 className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
                   zoom === z && !fitToWidth
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
                 }`}
               >
@@ -125,7 +125,7 @@ export function ImageViewer({ contentBase64, fileId: _fileId, fileName, size: _s
               onClick={() => setFitToWidth(!fitToWidth)}
               className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
                 fitToWidth
-                  ? 'bg-blue-500 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
               }`}
             >

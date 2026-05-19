@@ -182,7 +182,7 @@ export function PdfViewer({ contentBase64, fileId: _fileId, size: _size }: PdfVi
           <button
             key={z}
             type="button"
-            className={`rounded px-2 py-1 text-sm ${zoom === z ? 'bg-blue-100 dark:bg-blue-900/50' : 'border border-slate-300 dark:border-slate-600'}`}
+            className={`rounded px-2 py-1 text-sm ${zoom === z ? 'bg-blue-600 text-white' : 'border border-slate-300 dark:border-slate-600'}`}
             onClick={() => { setZoom(z); setFitToWidth(false) }}
             aria-label={`Zoom ${z}%`}
           >
@@ -204,7 +204,7 @@ export function PdfViewer({ contentBase64, fileId: _fileId, size: _size }: PdfVi
         <span className="text-sm text-slate-500 dark:text-slate-400">%</span>
         <button
           type="button"
-          className={`rounded px-2 py-1 text-sm ${fitToWidth ? 'bg-blue-100 dark:bg-blue-900/50' : 'border border-slate-300 dark:border-slate-600'}`}
+          className={`rounded px-2 py-1 text-sm ${fitToWidth ? 'bg-blue-600 text-white' : 'border border-slate-300 dark:border-slate-600'}`}
           onClick={() => setFitToWidth((f) => !f)}
           aria-label="Fit to width"
         >

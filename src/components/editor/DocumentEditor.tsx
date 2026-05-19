@@ -105,14 +105,14 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
         <div className="mb-2 flex gap-2">
           <button
             type="button"
-            className={`rounded px-3 py-1.5 text-sm font-medium ${!showPreview ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-slate-200 dark:bg-slate-700'}`}
+            className={`rounded px-3 py-1.5 text-sm font-medium ${!showPreview ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}
             onClick={() => setShowPreview(false)}
           >
             Edit
           </button>
           <button
             type="button"
-            className={`rounded px-3 py-1.5 text-sm font-medium ${showPreview ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-slate-200 dark:bg-slate-700'}`}
+            className={`rounded px-3 py-1.5 text-sm font-medium ${showPreview ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}
             onClick={() => setShowPreview(true)}
           >
             Preview
