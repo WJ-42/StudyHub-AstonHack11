@@ -91,10 +91,10 @@ export function Sidebar() {
           fixed inset-y-0 left-0 z-50 mt-14 md:mt-0 shadow-xl
           ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-[200%] md:translate-x-0'}`}
       >
-        <div className="flex items-center justify-between p-3">
+        <div className="flex items-center p-3">
           <button
             type="button"
-            className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+            className="hidden md:flex rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -106,7 +106,7 @@ export function Sidebar() {
             </svg>
           </button>
           {!sidebarCollapsed && (
-            <button type="button" className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors md:hidden" onClick={closeMobile} aria-label="Close menu">×</button>
+            <button type="button" className="ml-auto rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors md:hidden" onClick={closeMobile} aria-label="Close menu">×</button>
           )}
         </div>
         {!sidebarCollapsed && (
