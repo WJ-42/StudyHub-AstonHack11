@@ -105,7 +105,9 @@ export function Sidebar() {
               <rect x="3" y="16.5" width="18" height="1.5" rx="0.75" />
             </svg>
           </button>
-          <button type="button" className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors md:hidden" onClick={closeMobile} aria-label="Close menu">×</button>
+          {!sidebarCollapsed && (
+            <button type="button" className="rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors md:hidden" onClick={closeMobile} aria-label="Close menu">×</button>
+          )}
         </div>
         {!sidebarCollapsed && (
           <div className="relative px-3 pb-3" ref={menuRef}>
