@@ -1,6 +1,23 @@
 import { useSettings } from '@/contexts/SettingsContext'
 import { THEMES, FONTS, getFontLabel, getFontFamilyPreview, type Theme, type AppFont } from '@/store/storage'
 
+// CSS variables --color-accent and --color-accent-text are defined per theme
+// in index.css. Using inline styles here guarantees the right color shows up
+// regardless of CSS specificity or backdrop-filter stacking context issues.
+const ACCENT_STYLE: React.CSSProperties = {
+  backgroundColor: 'var(--color-accent)',
+  color: 'var(--color-accent-text)',
+}
+
+const ACCENT_SHADOW_STYLE: React.CSSProperties = {
+  backgroundColor: 'var(--color-accent)',
+  color: 'var(--color-accent-text)',
+  boxShadow: '0 0 14px color-mix(in srgb, var(--color-accent) 45%, transparent)',
+}
+
+const INACTIVE_BTN = 'rounded-xl px-5 py-2.5 text-sm font-medium capitalize transition-all duration-200 border border-slate-300/60 bg-white/60 text-slate-700 hover:bg-white hover:shadow-md dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/80'
+const ACTIVE_BTN = 'rounded-xl px-5 py-2.5 text-sm font-medium capitalize transition-all duration-200'
+
 export function SettingsView() {
   const { theme, setTheme, font, setFont, compact, setCompact, reduceMotion, setReduceMotion } = useSettings()
 
@@ -16,11 +33,8 @@ export function SettingsView() {
             <button
               key={t}
               type="button"
-              className={`rounded-xl px-5 py-2.5 text-sm font-medium capitalize transition-all duration-200 ${
-                theme === t
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'border border-slate-300/60 bg-white/60 text-slate-700 hover:bg-white hover:shadow-md hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/80'
-              }`}
+              className={theme === t ? ACTIVE_BTN : INACTIVE_BTN}
+              style={theme === t ? ACCENT_SHADOW_STYLE : undefined}
               onClick={() => setTheme(t as Theme)}
             >
               {t}
@@ -37,13 +51,13 @@ export function SettingsView() {
             <button
               key={f}
               type="button"
-              className={`rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+              className={font === f ? ACTIVE_BTN : INACTIVE_BTN}
+              style={
                 font === f
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'border border-slate-300/60 bg-white/60 text-slate-700 hover:bg-white hover:shadow-md hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/80'
-              }`}
+                  ? ACCENT_SHADOW_STYLE
+                  : { fontFamily: getFontFamilyPreview(f as AppFont) }
+              }
               onClick={() => setFont(f as AppFont)}
-              style={font === f ? undefined : { fontFamily: getFontFamilyPreview(f as AppFont) }}
             >
               {getFontLabel(f as AppFont)}
             </button>
@@ -60,8 +74,9 @@ export function SettingsView() {
             role="switch"
             aria-checked={compact}
             className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-all duration-200 ${
-              compact ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25' : 'bg-slate-300 dark:bg-slate-600'
+              compact ? '' : 'bg-slate-300 dark:bg-slate-600'
             }`}
+            style={compact ? ACCENT_STYLE : undefined}
             onClick={() => setCompact(!compact)}
           >
             <span
@@ -84,8 +99,9 @@ export function SettingsView() {
             role="switch"
             aria-checked={reduceMotion}
             className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-all duration-200 ${
-              reduceMotion ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25' : 'bg-slate-300 dark:bg-slate-600'
+              reduceMotion ? '' : 'bg-slate-300 dark:bg-slate-600'
             }`}
+            style={reduceMotion ? ACCENT_STYLE : undefined}
             onClick={() => setReduceMotion(!reduceMotion)}
           >
             <span
@@ -108,10 +124,14 @@ export function SettingsView() {
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Secondary text</p>
           </div>
           <div className="flex gap-3">
-            <button type="button" className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:opacity-95">
+            <button
+              type="button"
+              className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200"
+              style={ACCENT_SHADOW_STYLE}
+            >
               Primary
             </button>
-            <button type="button" className="rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200 hover:opacity-95 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-600/80">
+            <button type="button" className="rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200 dark:border-slate-600/60 dark:bg-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-600/80">
               Secondary
             </button>
           </div>
@@ -119,7 +139,7 @@ export function SettingsView() {
             type="text"
             readOnly
             value="Sample input"
-            className="w-full rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2.5 text-sm text-slate-800 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-200"
+            className="w-full rounded-xl border border-slate-300/60 bg-white/60 px-4 py-2.5 text-sm text-slate-800 shadow-md focus:outline-none transition-all dark:border-slate-600/60 dark:bg-slate-800/60 dark:text-slate-200"
           />
           <div className="rounded-xl border-2 border-border-default bg-flashcard p-5 shadow-md">
             <p className="text-sm font-medium text-text-primary">Flashcard sample text</p>

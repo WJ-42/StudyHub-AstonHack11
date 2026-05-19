@@ -15,6 +15,9 @@
   --color-text-primary: #1e293b;
   --color-text-muted: #64748b;
   --color-border: #cbd5e1;
+  /* Accent color used for selected/active buttons — overridden per theme */
+  --color-accent: #2563eb;
+  --color-accent-text: #ffffff;
 }
 
 body {
@@ -99,6 +102,8 @@ html[data-font="nunito"] {
   --color-text-primary: #f1f5f9;
   --color-text-muted: #94a3b8;
   --color-border: #1a1a1a;
+  --color-accent: #2563eb;
+  --color-accent-text: #ffffff;
   color-scheme: dark;
 }
 
@@ -295,6 +300,8 @@ html[data-font="nunito"] {
   --color-text-primary: #F2F6FF;
   --color-text-muted: #AEB6C9;
   --color-border: #00F0FF;
+  --color-accent: #FF00D4;
+  --color-accent-text: #05060A;
   color-scheme: dark;
 }
 
@@ -367,6 +374,8 @@ html[data-font="nunito"] {
   --color-text-primary: #EDE6FF;
   --color-text-muted: #BCAEDB;
   --color-border: #d97634;
+  --color-accent: #8A2BE2;
+  --color-accent-text: #EDE6FF;
   color-scheme: dark;
 }
 
@@ -548,6 +557,8 @@ html.theme-octopus header button[aria-label="User menu"]:hover {
   --color-text-primary: #A6FFA0;
   --color-text-muted: #75B874;
   --color-border: #14FF00;
+  --color-accent: #14FF00;
+  --color-accent-text: #0A0F0A;
   color-scheme: dark;
 }
 
@@ -642,6 +653,8 @@ html.theme-octopus header button[aria-label="User menu"]:hover {
   --color-text-primary: #F6EDE7;
   --color-text-muted: #C7B3A9;
   --color-border: #A55F3B;
+  --color-accent: #F29F67;
+  --color-accent-text: #2A1F1A;
   color-scheme: dark;
 }
 
