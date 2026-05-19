@@ -86,10 +86,10 @@ export function Sidebar() {
       )}
       <aside
         className={`flex flex-col border-r border-slate-200/60 bg-slate-50/80 backdrop-blur-sm transition-[width] dark:border-slate-700/60 dark:bg-slate-800/40
-          ${sidebarCollapsed ? 'w-64 md:w-16' : 'w-64'}
+          ${sidebarCollapsed ? 'w-16' : 'w-64'}
           md:relative
           fixed inset-y-0 left-0 z-50 mt-14 md:mt-0 shadow-xl
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-[200%] md:translate-x-0'}`}
       >
         <div className="flex items-center justify-between p-3">
           <button
