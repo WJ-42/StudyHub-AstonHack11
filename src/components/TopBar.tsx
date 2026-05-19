@@ -14,7 +14,7 @@ export function TopBar() {
   const { user, logout } = useAuth()
   const name = user?.displayName ?? null
   const { query, setQuery } = useSearch()
-  const { setMobileMenuOpen } = useLayout()
+  const { setMobileMenuOpen, mobileMenuOpen } = useLayout()
   const { theme } = useSettings()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -60,7 +60,7 @@ export function TopBar() {
       <div className="flex items-center gap-2">
         <button
           type="button"
-          className="md:hidden rounded p-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className={`${mobileMenuOpen ? 'hidden' : ''} md:hidden rounded p-2 hover:bg-slate-100 dark:hover:bg-slate-800`}
           onClick={() => setMobileMenuOpen(true)}
           aria-label="Open menu"
         >

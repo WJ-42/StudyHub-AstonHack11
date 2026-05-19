@@ -94,7 +94,7 @@ export function Sidebar() {
         <div className="flex items-center p-3">
           <button
             type="button"
-            className="hidden md:flex rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+            className="flex rounded-lg p-2.5 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
