@@ -42,7 +42,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/studyhub-backend-wj\.fly\.dev\/.*/i,
+            urlPattern: /^https:\/\/studyhub-backend-98ag\.onrender\.com\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

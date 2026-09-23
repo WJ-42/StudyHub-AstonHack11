@@ -94,7 +94,7 @@ Originally built at AstonHack 11 (24-hour hackathon at Aston University). Since 
 
 **Infrastructure**
 - Frontend deployed on Vercel (auto-deploys from GitHub)
-- Backend deployed on Fly.io
+- Backend deployed on Render
 - Database hosted on Neon Postgres
 
 **Testing**
@@ -159,7 +159,7 @@ git clone https://github.com/WJ-42/StudyHub-AstonHack11
 cd StudyHub-AstonHack11
 npm install
 cp .env.example .env
-# Set VITE_API_URL=https://studyhub-backend-wj.fly.dev in .env
+# Set VITE_API_URL=https://studyhub-backend-98ag.onrender.com in .env
 npm run dev
 ```
 
